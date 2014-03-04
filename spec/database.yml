@@ -1,0 +1,3 @@
+adapter: postgresql
+database: hierarchical_query_test
+username: vagrant
