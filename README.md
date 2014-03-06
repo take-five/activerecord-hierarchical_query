@@ -1,4 +1,4 @@
-# Activerecord::HierarchicalQuery
+# Activerecord::HierarchicalQuery [![Code Climate](https://codeclimate.com/github/take-five/activerecord-hierarchical_query.png)](https://codeclimate.com/github/take-five/activerecord-hierarchical_query)
 
 TODO: Write a gem description
 
