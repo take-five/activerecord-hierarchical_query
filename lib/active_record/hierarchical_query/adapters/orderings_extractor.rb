@@ -11,10 +11,13 @@ module ActiveRecord
       class OrderingsExtractor
         ORDERING_COLUMN_ALIAS = '__order_column'
 
-        attr_reader :builder, :table
+        attr_reader :adapter, :builder, :table
 
-        def initialize(builder)
-          @builder = builder
+        delegate :recursive_table, :to => :adapter
+
+        def initialize(adapter)
+          @adapter = adapter
+          @builder = @adapter.builder
           @table = builder.klass.arel_table
         end
 
@@ -24,13 +27,13 @@ module ActiveRecord
           [Arel::Nodes::PostgresArray.new([row_number]).as(ORDERING_COLUMN_ALIAS)]
         end
 
-        def recursive_term_ordering(recursive_table)
+        def recursive_term_ordering
           return [] if orderings.empty?
 
           [Arel::Nodes::ArrayConcat.new(recursive_table[ORDERING_COLUMN_ALIAS], row_number)]
         end
 
-        def order_clause(recursive_table)
+        def order_clause
           return [] if orderings.empty?
 
           recursive_table[ORDERING_COLUMN_ALIAS].asc

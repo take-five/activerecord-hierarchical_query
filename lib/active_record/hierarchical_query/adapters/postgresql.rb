@@ -18,16 +18,15 @@ module ActiveRecord
         def initialize(builder)
           @builder = builder
           @table = klass.arel_table
-          @orderings_extractor = OrderingsExtractor.new(builder)
+          @orderings_extractor = OrderingsExtractor.new(self)
         end
 
         def build_join(joined_to)
-          as_stmt = Arel::Nodes::As.new(build_arel, recursive_table)
+          join = build_inner_join(joined_to)
 
-          constraint = joined_to.table[joined_to.klass.primary_key].eq(recursive_table[klass.primary_key])
-          join = Arel::Nodes::InnerJoin.new(as_stmt, Arel::Nodes::On.new(constraint))
-
-          joined_to.joins(join.to_sql).order(@orderings_extractor.order_clause(recursive_table))
+          joined_to.
+              joins(join.to_sql).
+              order(@orderings_extractor.order_clause)
         end
 
         def recursive_table
@@ -37,8 +36,7 @@ module ActiveRecord
 
         private
         def build_arel
-          union = original_term.union(:all, recursive_term)
-          as_stmt = Arel::Nodes::As.new(recursive_table, union)
+          as_stmt = Arel::Nodes::As.new(recursive_table, union_term)
 
           manager = Arel::SelectManager.new(table.engine).
               with(:recursive, as_stmt).
@@ -48,16 +46,21 @@ module ActiveRecord
               skip(builder.offset_value)
 
           if builder.limit_value || builder.offset_value
-            manager.order(*@orderings_extractor.order_clause(recursive_table))
+            manager.order(*@orderings_extractor.order_clause)
           end
 
           manager
         end
 
+        def union_term
+          original_term.union(:all, recursive_term)
+        end
+
         # returns original (non-recursive) term of CTE
         def original_term
           (builder.start_with_value || klass).
-            select(common_columns + @orderings_extractor.original_term_ordering).
+            select(common_columns).
+            select(@orderings_extractor.original_term_ordering).
             except(:order, :limit, :offset).
             arel
         end
@@ -66,7 +69,8 @@ module ActiveRecord
           table = builder.child_scope_value.arel_table
 
           arel = builder.child_scope_value.
-            select(common_columns.map { |x| table[x] } + @orderings_extractor.recursive_term_ordering(recursive_table)).
+            select(common_columns_for(table)).
+            select(@orderings_extractor.recursive_term_ordering).
             arel
 
           arel.join(recursive_table).on(join_conditions)
@@ -75,6 +79,10 @@ module ActiveRecord
         # returns columns to be selected from both terms
         def common_columns
           [klass.primary_key] | extract_columns_from_connect_by
+        end
+
+        def common_columns_for(table)
+          common_columns.map { |x| table[x] }
         end
 
         # extracts column names from connect by condition
@@ -97,6 +105,13 @@ module ActiveRecord
 
         def join_conditions
           builder.connect_by_value[recursive_table, table]
+        end
+
+        def build_inner_join(relation)
+          as_stmt = Arel::Nodes::As.new(build_arel, recursive_table)
+
+          constraint = relation.table[relation.klass.primary_key].eq(recursive_table[klass.primary_key])
+          Arel::Nodes::InnerJoin.new(as_stmt, Arel::Nodes::On.new(constraint))
         end
       end # class PostgreSQL
     end # module Adapters
