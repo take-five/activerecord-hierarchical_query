@@ -31,7 +31,10 @@ module ActiveRecord
   end
 end
 
-ActiveSupport.on_load(:active_record) do
-  ActiveRecord::Querying.delegate :join_recursive, :to => ActiveRecord::HierarchicalQuery::DELEGATOR_SCOPE
+ActiveSupport.on_load(:active_record, :yield => true) do |base|
+  class << base
+    delegate :join_recursive, :to => ActiveRecord::HierarchicalQuery::DELEGATOR_SCOPE
+  end
+
   ActiveRecord::Relation.send :include, ActiveRecord::HierarchicalQuery
 end

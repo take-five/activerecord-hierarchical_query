@@ -1,5 +1,6 @@
 # coding: utf-8
 require 'pathname'
+require 'logger'
 
 SPEC_ROOT = Pathname.new(File.dirname(__FILE__))
 

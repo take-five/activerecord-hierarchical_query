@@ -49,7 +49,7 @@ module ActiveRecord
             manager.order(*@orderings_extractor.order_clause)
           end
 
-          manager
+          Arel::Nodes::Grouping.new(manager.ast)
         end
 
         def union_term
