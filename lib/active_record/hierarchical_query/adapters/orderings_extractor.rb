@@ -63,17 +63,22 @@ module ActiveRecord
 
             when String
               value.split(',').map do |expr|
-                expr.strip!
-                if expr.gsub!(/\s+desc\z/i, '')
-                  Arel.sql(expr).desc
-                else
-                  expr.gsub!(/\s+asc\z/i, '')
-                  Arel.sql(expr).asc
-                end
+                string_as_ordering(expr)
               end
 
             else
               raise 'Unknown expression in ORDER BY SIBLINGS clause'
+          end
+        end
+
+        def string_as_ordering(expr)
+          expr.strip!
+
+          if expr.gsub!(/\s+desc\z/i, '')
+            Arel.sql(expr).desc
+          else
+            expr.gsub!(/\s+asc\z/i, '')
+            Arel.sql(expr).asc
           end
         end
       end # class OrderingsExtractor
