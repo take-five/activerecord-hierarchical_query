@@ -9,7 +9,7 @@ module ActiveRecord
       #
       # @api private
       class OrderingsExtractor
-        ALIAS_PREFIX = '__order_column_'
+        ORDERING_COLUMN_ALIAS = '__order_column'
 
         attr_reader :builder, :table
 
@@ -18,32 +18,27 @@ module ActiveRecord
           @table = builder.klass.arel_table
         end
 
-        def original_term_columns
-          columns.each_with_index.map do |column, i|
-            ary = Arel::Nodes::PostgresArray.new([column])
-            Arel::Nodes::As.new(ary, build_alias(i))
-          end
+        def original_term_ordering
+          return [] if orderings.empty?
+
+          [Arel::Nodes::PostgresArray.new([row_number]).as(ORDERING_COLUMN_ALIAS)]
         end
 
-        def recursive_term_columns(recursive_table)
-          columns.each_with_index.map do |column, i|
-            Arel::Nodes::ArrayConcat.new(build_alias(i, recursive_table), column)
-          end
+        def recursive_term_ordering(recursive_table)
+          return [] if orderings.empty?
+
+          [Arel::Nodes::ArrayConcat.new(recursive_table[ORDERING_COLUMN_ALIAS], row_number)]
         end
 
-        def order_clause_values(table)
-          orderings.each_with_index.map do |ordering, i|
-            if ordering.ascending?
-              build_alias(i, table).asc
-            else
-              build_alias(i, table).desc
-            end
-          end
+        def order_clause(recursive_table)
+          return [] if orderings.empty?
+
+          recursive_table[ORDERING_COLUMN_ALIAS].asc
         end
 
         private
-        def columns
-          orderings.map(&:expr)
+        def row_number
+          Arel.sql("ROW_NUMBER() OVER (ORDER BY #{orderings.map(&:to_sql).join(', ')})")
         end
 
         def orderings
@@ -52,18 +47,12 @@ module ActiveRecord
           end
         end
 
-        def build_alias(index, table = nil)
-          aliaz = Arel.sql("#{ALIAS_PREFIX}#{index}")
-          aliaz = table[aliaz] if table
-          aliaz
-        end
-
         def as_orderings(value)
           case value
             when Arel::Nodes::Ordering
               value
 
-            when Arel::Nodes::Node
+            when Arel::Nodes::Node, Arel::Attributes::Attribute
               value.asc
 
             when Symbol

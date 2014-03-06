@@ -5,8 +5,8 @@ SPEC_ROOT = Pathname.new(File.dirname(__FILE__))
 
 require 'bundler/setup'
 require 'rspec'
+require 'database_cleaner'
 require 'active_record'
-require 'active_record/hierarchical_query'
 
 ActiveRecord::Base.establish_connection(YAML.load(SPEC_ROOT.join('database.yml').read))
 ActiveRecord::Base.logger = Logger.new(ENV['DEBUG'] ? $stderr : '/dev/null')
@@ -16,6 +16,8 @@ end
 
 load SPEC_ROOT.join('schema.rb')
 require SPEC_ROOT.join('support', 'models').to_s
+
+DatabaseCleaner.strategy = :transaction
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -28,4 +30,24 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   config.order = 'random'
+
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.start
+    example.run
+    DatabaseCleaner.clean
+  end
 end
+
+begin
+  require 'simplecov'
+  SimpleCov.start
+rescue LoadError, NameError
+  # ok
+end
+
+require 'active_record/hierarchical_query'

@@ -19,7 +19,7 @@ module ActiveRecord
 
       def initialize(klass)
         @klass = klass
-        @adapter = Adapters.lookup(@klass)
+        @adapter = Adapters.lookup(@klass).new(self)
 
         @start_with_value = nil
         @connect_by_value = nil
@@ -37,28 +37,46 @@ module ActiveRecord
       #              .connect_by(:id => :parent_id)
       #   end
       #
+      # @example When Hash given
+      #   MyModel.join_recursive do |hierarchy|
+      #     hierarchy.start_with(:parent_id => nil)
+      #              .connect_by(:id => :parent_id)
+      #   end
+      #
       # @example When block given
       #   MyModel.join_recursive do |hierarchy|
       #     hierarchy.start_with { |root| root.where(:parent_id => nil) }
+      #              .connect_by(:id => :parent_id)
       #   end
       #
       # @example When block with arity=0 given
       #   MyModel.join_recursive do |hierarchy|
       #     hierarchy.start_with { where(:parent_id => nil) }
+      #              .connect_by(:id => :parent_id)
       #   end
       #
       # @example Specify columns for root relation (PostgreSQL-specific)
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.start_with { select('ARRAY[id] AS _path') }.
+      #     hierarchy.start_with { select('ARRAY[id] AS _path') }
+      #              .connect_by(:id => :parent_id)
       #              .select('_path || id')
       #   end
       #
-      # @param [ActiveRecord::Relation, nil] scope root scope (optional).
+      # @param [ActiveRecord::Relation, Hash, nil] scope root scope (optional).
       # @return [ActiveRecord::HierarchicalQuery::Builder] self
       def start_with(scope = nil, &block)
         raise ArgumentError, 'START WITH: scope or block expected, none given' unless scope || block
 
-        @start_with_value = scope if scope
+        @start_with_value = case scope
+          when Hash
+            klass.where(scope)
+
+          when ActiveRecord::Relation
+            scope
+
+          else
+            nil
+        end
 
         if block
           object = @start_with_value || @klass
@@ -163,7 +181,7 @@ module ActiveRecord
       #              .order_siblings('name DESC, created_at ASC')
       #   end
       #
-      # @param [<Symbol, String, Arel::Nodes::Node>] columns
+      # @param [<Symbol, String, Arel::Nodes::Node, Arel::Attributes::Attribute>] columns
       # @return [ActiveRecord::HierarchicalQuery::Builder] self
       def order_siblings(*columns)
         @order_values += columns
@@ -171,12 +189,46 @@ module ActiveRecord
         self
       end
 
-      def build_relation
-        @adapter.new(self).build_relation
+      # Returns object representing parent rows table,
+      # so it could be used in complex WHEREs.
+      #
+      # @example
+      #   MyModel.join_recursive do |hierarchy|
+      #     hierarchy.connect_by(:id => :parent_id)
+      #              .start_with(:parent_id => nil) { select(:depth) }
+      #              .select(hierarchy.table[:depth])
+      #              .where(hierarchy.prior[:depth].lteq 1)
+      #   end
+      #
+      # @return [Arel::Table]
+      def prior
+        @adapter.prior
+      end
+      alias_method :previous, :prior
+
+      # Returns object representing child rows table,
+      # so it could be used in complex WHEREs.
+      #
+      # @example
+      #   MyModel.join_recursive do |hierarchy|
+      #     hierarchy.connect_by(:id => :parent_id)
+      #              .start_with(:parent_id => nil) { select(:depth) }
+      #              .select(hierarchy.table[:depth])
+      #              .where(hierarchy.prior[:depth].lteq 1)
+      #   end
+      def table
+        @klass.arel_table
       end
 
-      def build_join(joined_to)
-        @adapter.new(self).build_join(joined_to)
+      # Builds recursive query and joins it to given +relation+.
+      #
+      # @api private
+      # @param [ActiveRecord::Relation] relation
+      def join_to(relation)
+        raise 'Recursive query requires CONNECT BY clause, please use #connect_by method' unless
+            connect_by_value
+
+        @adapter.build_join(relation)
       end
 
       private

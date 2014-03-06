@@ -7,21 +7,18 @@ require 'active_record/hierarchical_query/adapters/orderings_extractor'
 module ActiveRecord
   module HierarchicalQuery
     module Adapters
+      # @api private
       class PostgreSQL
         attr_reader :builder,
                     :table
 
         delegate :klass, :to => :builder
 
-        # @param [ActiveRecord::HierachicalQuery::Builder] builder
+        # @param [ActiveRecord::HierarchicalQuery::Builder] builder
         def initialize(builder)
           @builder = builder
           @table = klass.arel_table
           @orderings_extractor = OrderingsExtractor.new(builder)
-        end
-
-        def build_relation
-          build_arel.order(@orderings_extractor.order_clause_values(recursive_table))
         end
 
         def build_join(joined_to)
@@ -30,40 +27,49 @@ module ActiveRecord
           constraint = joined_to.table[joined_to.klass.primary_key].eq(recursive_table[klass.primary_key])
           join = Arel::Nodes::InnerJoin.new(as_stmt, Arel::Nodes::On.new(constraint))
 
-          joined_to.joins(join.to_sql).order(@orderings_extractor.order_clause_values(recursive_table))
+          joined_to.joins(join.to_sql).order(@orderings_extractor.order_clause(recursive_table))
         end
 
+        def recursive_table
+          @recursive_table ||= Arel::Table.new("#{table.name}__recursive")
+        end
+        alias_method :prior, :recursive_table
+
+        private
         def build_arel
           union = original_term.union(:all, recursive_term)
           as_stmt = Arel::Nodes::As.new(recursive_table, union)
 
-          Arel::SelectManager.new(table.engine).
+          manager = Arel::SelectManager.new(table.engine).
               with(:recursive, as_stmt).
               from(recursive_table).
               project(recursive_table[Arel.star]).
               take(builder.limit_value).
               skip(builder.offset_value)
+
+          if builder.limit_value || builder.offset_value
+            manager.order(*@orderings_extractor.order_clause(recursive_table))
+          end
+
+          manager
         end
 
-        private
         # returns original (non-recursive) term of CTE
         def original_term
           (builder.start_with_value || klass).
-            select(common_columns + @orderings_extractor.original_term_columns).
+            select(common_columns + @orderings_extractor.original_term_ordering).
             except(:order, :limit, :offset).
             arel
         end
 
         def recursive_term
+          table = builder.child_scope_value.arel_table
+
           arel = builder.child_scope_value.
-            select(common_columns + @orderings_extractor.recursive_term_columns(recursive_table)).
+            select(common_columns.map { |x| table[x] } + @orderings_extractor.recursive_term_ordering(recursive_table)).
             arel
 
           arel.join(recursive_table).on(join_conditions)
-        end
-
-        def recursive_table
-          @recursive_table ||= Arel::Table.new("#{table.name}__recursive")
         end
 
         # returns columns to be selected from both terms
