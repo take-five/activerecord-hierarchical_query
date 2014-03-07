@@ -1,0 +1,4 @@
+adapter: postgresql
+database: hierarchical_query_test
+username: postgres
+min_messages: ERROR

@@ -5,6 +5,9 @@ require 'logger'
 SPEC_ROOT = Pathname.new(File.dirname(__FILE__))
 
 require 'bundler/setup'
+
+Bundler.setup(:default, ENV['TRAVIS'] ? :travis : :local)
+
 require 'rspec'
 require 'database_cleaner'
 require 'active_record'
@@ -44,11 +47,9 @@ RSpec.configure do |config|
   end
 end
 
-begin
-  require 'simplecov'
-  SimpleCov.start
-rescue LoadError, NameError
-  # ok
+if ENV['TRAVIS']
+  require 'coveralls'
+  Coveralls.wear!
 end
 
 require 'active_record/hierarchical_query'
