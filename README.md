@@ -140,11 +140,12 @@ Category.join_recursive do |query|
 end
 ```
 
-You can even refer to parent table!
+You can even refer to parent table, just don't forget to include columns in `SELECT` clause!
 
 ```ruby
 Category.join_recursive do |query|
   query.connect_by(:id => :parent_id)
+       .select(:name).
        .where(query.prior[:name].matches('ruby %'))
 end
 ```
@@ -166,8 +167,9 @@ For example, this piece of code
 
 ```ruby
 Category.join_recursive do |query|
-  query.start_with(:parent_id => nil) { select(:depth) }
+  query.start_with(:parent_id => nil)
        .connect_by(:id => :parent_id)
+       .select(:depth)
        .where(query.prior[:depth].lteq(5))
        .order_siblings(:position)
 end

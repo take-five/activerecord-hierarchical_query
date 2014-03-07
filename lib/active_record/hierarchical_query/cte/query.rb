@@ -22,8 +22,8 @@ module ActiveRecord
           @columns = Columns.new(self)
         end
 
-        def build_join(relation)
-          JoinBuilder.new(self, relation).build
+        def build_join(relation, subquery_alias)
+          JoinBuilder.new(self, relation, subquery_alias).build
         end
 
         # @return [Arel::SelectManager]

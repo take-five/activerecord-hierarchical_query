@@ -1,5 +1,7 @@
 # coding: utf-8
 
+require 'active_support/core_ext/array/extract_options'
+
 require 'active_record/hierarchical_query/adapters'
 
 module ActiveRecord
@@ -15,7 +17,7 @@ module ActiveRecord
                   :order_values
 
       # @api private
-      CHILD_SCOPE_METHODS = :select, :where, :joins, :group, :having
+      CHILD_SCOPE_METHODS = :where, :joins, :group, :having
 
       def initialize(klass)
         @klass = klass
@@ -67,15 +69,15 @@ module ActiveRecord
       def start_with(scope = nil, &block)
         raise ArgumentError, 'START WITH: scope or block expected, none given' unless scope || block
 
-        @start_with_value = case scope
+        case scope
           when Hash
-            klass.where(scope)
+            @start_with_value = klass.where(scope)
 
           when ActiveRecord::Relation
-            scope
+            @start_with_value = scope
 
           else
-            nil
+            # do nothing if something weird given
         end
 
         if block
@@ -126,6 +128,29 @@ module ActiveRecord
         self
       end
 
+      # Specify which columns should be selected in addition to primary key,
+      # CONNECT BY columns and ORDER SIBLINGS columns.
+      #
+      # @param [Array<Symbol, String, Arel::Attributes::Attribute, Arel::Nodes::Node>] columns
+      # @option columns [true, false] :start_with include given columns to START WITH clause (true by default)
+      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      def select(*columns)
+        options = columns.extract_options!
+
+        columns = columns.flatten.map do |column|
+          column.is_a?(Symbol) ? table[column] : column
+        end
+
+        # TODO: detect if column already present in START WITH clause and skip it
+        if options.fetch(:start_with, true)
+          start_with { |scope| scope.select(columns) }
+        end
+
+        @child_scope_value = @child_scope_value.select(columns)
+
+        self
+      end
+
       # Generate methods that apply filters to child scope, such as
       # +where+ or +group+.
       #
@@ -135,7 +160,6 @@ module ActiveRecord
       #   end
       #
       # @!method where(*conditions)
-      # @!method select(*columns)
       # @!method joins(*tables)
       # @!method group(*values)
       # @!method having(*conditions)
@@ -225,11 +249,15 @@ module ActiveRecord
       #
       # @api private
       # @param [ActiveRecord::Relation] relation
-      def join_to(relation)
+      # @param [Hash] join_options
+      # @option join_options [#to_s] :as joined table alias
+      def join_to(relation, join_options = {})
         raise 'Recursive query requires CONNECT BY clause, please use #connect_by method' unless
             connect_by_value
 
-        @adapter.build_join(relation)
+        table_alias = join_options.fetch(:as, "#{table.name}__recursive")
+
+        @adapter.build_join(relation, table_alias)
       end
 
       private

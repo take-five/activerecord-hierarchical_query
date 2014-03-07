@@ -22,15 +22,24 @@ module ActiveRecord
     #          .order_siblings(:name => :desc)
     #   end
     #
+    # @param [Hash] join_options
+    # @option join_options [String, Symbol] :as aliased name of joined
+    #   table (`%table_name%__recursive` by default)
     # @yield [query]
     # @yieldparam [ActiveRecord::HierarchicalQuery::Builder] query Hierarchical query builder
     # @raise [ArgumentError] if block is omitted
-    def join_recursive(&block)
+    def join_recursive(join_options = {}, &block)
       raise ArgumentError, 'block expected' unless block_given?
 
-      builder = Builder.new(klass).tap(&block)
+      builder = Builder.new(klass)
 
-      builder.join_to(self)
+      if block.arity == 0
+        builder.instance_eval(&block)
+      else
+        block.call(builder)
+      end
+
+      builder.join_to(self, join_options)
     end
   end
 end

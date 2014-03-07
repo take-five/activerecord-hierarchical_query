@@ -11,16 +11,13 @@ module ActiveRecord
                     :table
 
         delegate :klass, :to => :builder
+        delegate :build_join, :to => :@query
 
         # @param [ActiveRecord::HierarchicalQuery::Builder] builder
         def initialize(builder)
           @builder = builder
           @table = klass.arel_table
           @query = CTE::Query.new(builder)
-        end
-
-        def build_join(joined_to)
-          @query.build_join(joined_to)
         end
 
         def prior
