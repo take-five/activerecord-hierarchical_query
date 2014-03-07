@@ -84,7 +84,7 @@ module ActiveRecord
         end
 
         def ordered_by_attribute?
-          arel_nodes.one? && first.ascending? && first.expr.is_a?(Arel::Attributes::Attribute)
+          arel_nodes.one? && first.ascending? && order_attribute.is_a?(Arel::Attributes::Attribute)
         end
 
         def order_attribute

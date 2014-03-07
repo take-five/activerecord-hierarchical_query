@@ -188,6 +188,7 @@ module ActiveRecord
 
         self
       end
+      alias_method :order, :order_siblings
 
       # Returns object representing parent rows table,
       # so it could be used in complex WHEREs.
