@@ -5,5 +5,6 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :parent_id, :integer
     t.column :name, :string
     t.column :depth, :integer
+    t.column :position, :integer
   end
 end

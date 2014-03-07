@@ -4,6 +4,12 @@ class Category < ActiveRecord::Base
     sequence = abc.product(abc, abc).map(&:join).to_enum
 
     loop do
+      # category aaa
+      # category aab
+      # ...
+      # category aaz
+      # category aba
+      # ...
       y << "category #{sequence.next}"
     end
   end
@@ -13,6 +19,7 @@ class Category < ActiveRecord::Base
 
   before_save :generate_name, :unless => :name?
   before_save :count_depth
+  before_save :count_position
 
   def generate_name
     self.name = @@generator.next
@@ -20,6 +27,10 @@ class Category < ActiveRecord::Base
 
   def count_depth
     self.depth = ancestors.count
+  end
+
+  def count_position
+    self.position = (self.class.where(:parent_id => parent_id).maximum(:position) || 0) + 1
   end
 
   def ancestors

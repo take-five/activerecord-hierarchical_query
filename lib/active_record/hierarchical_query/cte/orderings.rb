@@ -1,3 +1,4 @@
+require 'set'
 require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
@@ -7,6 +8,12 @@ module ActiveRecord
         include Enumerable
 
         ORDERING_COLUMN_ALIAS = '__order_column'
+
+        NATURAL_SORT_TYPES = Set[
+            :integer, :float, :decimal,
+            :datetime, :timestamp, :time, :date,
+            :boolean, :itet, :cidr, :ltree
+        ]
 
         delegate :table, :to => :@builder
         delegate :each, :to => :arel_nodes
@@ -23,7 +30,11 @@ module ActiveRecord
         end
 
         def row_number_expression
-          Arel.sql("ROW_NUMBER() OVER (ORDER BY #{arel_nodes.map(&:to_sql).join(', ')})")
+          if raw_ordering?
+            order_attribute
+          else
+            Arel.sql("ROW_NUMBER() OVER (ORDER BY #{arel_nodes.map(&:to_sql).join(', ')})")
+          end
         end
 
         def column_name
@@ -64,6 +75,32 @@ module ActiveRecord
             expr.gsub!(/\s+asc\z/i, '')
             Arel.sql(expr).asc
           end
+        end
+
+        def raw_ordering?
+          ordered_by_attribute? &&
+              (column = order_column) &&
+              NATURAL_SORT_TYPES.include?(column.type)
+        end
+
+        def ordered_by_attribute?
+          arel_nodes.one? && first.ascending? && first.expr.is_a?(Arel::Attributes::Attribute)
+        end
+
+        def order_attribute
+          first.expr
+        end
+
+        def order_column
+          table = order_attribute.relation
+
+          if table.engine == ActiveRecord::Base
+            columns = table.engine.connection_pool.columns_hash[table.name]
+          else
+            columns = table.engine.columns_hash
+          end
+
+          columns[order_attribute.name.to_s]
         end
       end # class Orderings
     end

@@ -100,6 +100,21 @@ describe ActiveRecord::HierarchicalQuery do
           end
         }.to raise_error /ORDER BY SIBLINGS/
       end
+
+      context 'when one attribute given and this attribute support natural sorting' do
+        let(:relation) do
+          klass.join_recursive do |b|
+            b.connect_by(:id => :parent_id).
+              start_with(:parent_id => nil).
+              order_siblings(:position)
+          end
+        end
+
+        it 'orders rows by given attribute' do
+          expect(relation).to eq [root, child_1, child_2, child_3, child_4, child_5]
+          expect(relation.to_sql).not_to match /row_number/i
+        end
+      end
     end
 
     describe 'LIMIT and OFFSET clauses' do
