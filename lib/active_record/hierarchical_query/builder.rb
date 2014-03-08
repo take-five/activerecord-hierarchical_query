@@ -2,7 +2,8 @@
 
 require 'active_support/core_ext/array/extract_options'
 
-require 'active_record/hierarchical_query/adapters'
+require 'active_record/hierarchical_query/cte/query'
+require 'active_record/hierarchical_query/join_builder'
 
 module ActiveRecord
   module HierarchicalQuery
@@ -22,7 +23,7 @@ module ActiveRecord
 
       def initialize(klass)
         @klass = klass
-        @adapter = Adapters.lookup(@klass).new(self)
+        @query = CTE::Query.new(self)
 
         @start_with_value = nil
         @connect_by_value = nil
@@ -239,7 +240,7 @@ module ActiveRecord
       #
       # @return [Arel::Table]
       def prior
-        @adapter.prior
+        @query.recursive_table
       end
       alias_method :previous, :prior
 
@@ -269,7 +270,7 @@ module ActiveRecord
 
         table_alias = join_options.fetch(:as, "#{table.name}__recursive")
 
-        @adapter.build_join(relation, table_alias)
+        JoinBuilder.new(@query, relation, table_alias).build
       end
 
       private

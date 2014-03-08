@@ -1,37 +1,30 @@
 # coding: utf-8
 
+require 'active_record/hierarchical_query/adapters'
 require 'active_record/hierarchical_query/cte/columns'
-require 'active_record/hierarchical_query/cte/cycle_detector'
-require 'active_record/hierarchical_query/cte/join_builder'
-require 'active_record/hierarchical_query/cte/orderings'
 require 'active_record/hierarchical_query/cte/union_term'
 
 module ActiveRecord
   module HierarchicalQuery
     module CTE
+      # CTE query builder
       class Query
         attr_reader :builder,
-                    :columns,
-                    :orderings,
-                    :cycle_detector
+                    :adapter,
+                    :columns
 
         delegate :klass, :table, :to => :builder
 
         # @param [ActiveRecord::HierarchicalQuery::Builder] builder
         def initialize(builder)
           @builder = builder
-          @orderings = Orderings.new(builder)
+          @adapter = Adapters.lookup(klass).new(self)
           @columns = Columns.new(self)
-          @cycle_detector = CycleDetector.new(self)
-        end
-
-        def build_join(relation, subquery_alias)
-          JoinBuilder.new(self, relation, subquery_alias).build
         end
 
         # @return [Arel::SelectManager]
         def arel
-          apply_ordering { build_arel }
+          adapter.visit(:cte, build_arel)
         end
 
         # @return [Arel::Table]
@@ -41,10 +34,6 @@ module ActiveRecord
 
         def join_conditions
           builder.connect_by_value[recursive_table, table]
-        end
-
-        def order_clause
-          recursive_table[orderings.column_name].asc
         end
 
         private
@@ -62,16 +51,6 @@ module ActiveRecord
           UnionTerm.new(self)
         end
 
-        def apply_ordering
-          arel = yield
-
-          if should_order?
-            apply_ordering_to(arel)
-          else
-            arel
-          end
-        end
-
         def build_arel
           Arel::SelectManager.new(table.engine).
             with(:recursive, with_query).
@@ -79,14 +58,6 @@ module ActiveRecord
             project(recursive_table[Arel.star]).
             take(builder.limit_value).
             skip(builder.offset_value)
-        end
-
-        def should_order?
-          orderings.any? && builder.limit_value || builder.offset_value
-        end
-
-        def apply_ordering_to(select_manager)
-          select_manager.order(order_clause)
         end
       end
     end
