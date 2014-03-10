@@ -6,6 +6,7 @@ module ActiveRecord
         attr_reader :query
 
         delegate :orderings,
+                 :cycle_detector,
                  :recursive_table,
                  :join_conditions,
                  :to => :query
@@ -16,11 +17,12 @@ module ActiveRecord
         end
 
         def arel
-          scope.
-              select(query.columns).
-              select(ordering_column).
-              arel.
-              join(recursive_table).on(join_conditions)
+          arel = scope.select(query.columns)
+                      .select(ordering_column)
+                      .arel
+                      .join(recursive_table).on(join_conditions)
+
+          cycle_detector.visit_recursive(arel)
         end
 
         private

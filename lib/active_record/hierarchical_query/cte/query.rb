@@ -1,6 +1,7 @@
 # coding: utf-8
 
 require 'active_record/hierarchical_query/cte/columns'
+require 'active_record/hierarchical_query/cte/cycle_detector'
 require 'active_record/hierarchical_query/cte/join_builder'
 require 'active_record/hierarchical_query/cte/orderings'
 require 'active_record/hierarchical_query/cte/union_term'
@@ -11,7 +12,8 @@ module ActiveRecord
       class Query
         attr_reader :builder,
                     :columns,
-                    :orderings
+                    :orderings,
+                    :cycle_detector
 
         delegate :klass, :table, :to => :builder
 
@@ -20,6 +22,7 @@ module ActiveRecord
           @builder = builder
           @orderings = Orderings.new(builder)
           @columns = Columns.new(self)
+          @cycle_detector = CycleDetector.new(self)
         end
 
         def build_join(relation, subquery_alias)

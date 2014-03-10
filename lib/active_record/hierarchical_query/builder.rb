@@ -14,7 +14,8 @@ module ActiveRecord
                   :child_scope_value,
                   :limit_value,
                   :offset_value,
-                  :order_values
+                  :order_values,
+                  :nocycle_value
 
       # @api private
       CHILD_SCOPE_METHODS = :where, :joins, :group, :having
@@ -28,6 +29,7 @@ module ActiveRecord
         @child_scope_value = klass
         @limit_value = nil
         @offset_value = nil
+        @nocycle_value = false
         @order_values = []
       end
 
@@ -61,7 +63,7 @@ module ActiveRecord
       #   MyModel.join_recursive do |hierarchy|
       #     hierarchy.start_with { select('ARRAY[id] AS _path') }
       #              .connect_by(:id => :parent_id)
-      #              .select('_path || id')
+      #              .select('_path || id', :start_with => false) # `:start_with => false` tells not to include this expression into START WITH clause
       #   end
       #
       # @param [ActiveRecord::Relation, Hash, nil] scope root scope (optional).
@@ -213,6 +215,16 @@ module ActiveRecord
         self
       end
       alias_method :order, :order_siblings
+
+      # Turn on/off cycles detection. This option can prevent
+      # endless loops if your tree could contain cycles.
+      #
+      # @param [true, false] value
+      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      def nocycle(value = true)
+        @nocycle_value = value
+        self
+      end
 
       # Returns object representing parent rows table,
       # so it could be used in complex WHEREs.

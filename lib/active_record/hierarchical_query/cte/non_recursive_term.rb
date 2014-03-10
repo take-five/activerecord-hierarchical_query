@@ -9,7 +9,7 @@ module ActiveRecord
         DISALLOWED_CLAUSES = :order, :limit, :offset
 
         attr_reader :query
-        delegate :builder, :orderings, :to => :query
+        delegate :builder, :orderings, :cycle_detector, :to => :query
         delegate :start_with_value, :klass, :to => :builder
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
@@ -18,11 +18,12 @@ module ActiveRecord
         end
 
         def arel
-          scope.
-              select(query.columns).
-              select(ordering_column).
-              except(*DISALLOWED_CLAUSES).
-              arel
+          arel = scope.select(query.columns)
+                      .select(ordering_column)
+                      .except(*DISALLOWED_CLAUSES)
+                      .arel
+
+          cycle_detector.visit_non_recursive(arel)
         end
 
         private

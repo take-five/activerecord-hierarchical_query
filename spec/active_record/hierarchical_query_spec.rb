@@ -166,6 +166,19 @@ describe ActiveRecord::HierarchicalQuery do
       end
     end
 
+    describe 'NOCYCLE clause' do
+      before { klass.where(:id => child_4.id).update_all(:parent_id => child_5.id) }
+
+      it 'prevents recursive query from endless loops' do
+        expect(
+          klass.join_recursive do |query|
+            query.start_with(:id => child_4.id)
+                 .connect_by(:id => :parent_id)
+                 .nocycle
+          end
+        ).to match_array [child_4, child_5]
+      end
+    end
   end
 
   describe '#join_recursive options' do

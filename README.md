@@ -55,10 +55,10 @@ and `name`. You can traverse nodes recursively starting from root rows connected
 `parent_id` column ordered by `name`:
 
 ```ruby
-Category.join_recursive do |query|
-  query.start_with(:parent_id => nil)
-       .connect_by(:id => :parent_id)
-       .order_siblings(:name)
+Category.join_recursive do
+  start_with(:parent_id => nil).
+  connect_by(:id => :parent_id).
+  order_siblings(:name)
 end
 ```
 
@@ -94,9 +94,9 @@ Hierarchical queries are processed as follows:
 This clause is specified by `start_with` method:
 
 ```ruby
-Category.join_recursive { |query| query.start_with(:parent_id => nil) }
-Category.join_recursive { |query| query.start_with { where(:parent_id => nil) } }
-Category.join_recursive { |query| query.start_with { |root_rows| root_rows.where(:parent_id => nil) } }
+Category.join_recursive { start_with(:parent_id => nil) }
+Category.join_recursive { start_with { where(:parent_id => nil) } }
+Category.join_recursive { start_with { |root_rows| root_rows.where(:parent_id => nil) } }
 ```
 
 All of these statements are equivalent.
@@ -107,11 +107,11 @@ This clause is necessary and specified by `connect_by` method:
 
 ```ruby
 # join parent table ID columns and child table PARENT_ID column
-Category.join_recursive { |query| query.connect_by(:id => :parent_id) }
+Category.join_recursive { connect_by(:id => :parent_id) }
 
 # you can use block to build complex JOIN conditions
-Category.join_recursive do |query|
-  query.connect_by do |parent_table, child_table|
+Category.join_recursive do
+  connect_by do |parent_table, child_table|
     parent_table[:id].eq child_table[:parent_id]
   end
 end
@@ -122,13 +122,13 @@ end
 You can specify order in which rows on each hierarchy level should appear:
 
 ```ruby
-Category.join_recursive { |query| query.order_siblings(:name) }
+Category.join_recursive { order_siblings(:name) }
 
 # you can reverse order
-Category.join_recursive { |query| query.order_siblings(:name => :desc) }
+Category.join_recursive { order_siblings(:name => :desc) }
 
 # arbitrary strings and Arel nodes are allowed also
-Category.join_recursive { |query| query.order_siblings('name ASC') }
+Category.join_recursive { order_siblings('name ASC') }
 Category.join_recursive { |query| query.order_siblings(query.table[:name].asc) }
 ```
 
@@ -137,9 +137,8 @@ Category.join_recursive { |query| query.order_siblings(query.table[:name].asc) }
 You can filter rows on each hierarchy level by applying `WHERE` conditions:
 
 ```ruby
-Category.join_recursive do |query|
-  query.connect_by(:id => :parent_id)
-       .where('name LIKE ?', 'ruby %')
+Category.join_recursive do
+  connect_by(:id => :parent_id).where('name LIKE ?', 'ruby %')
 end
 ```
 
@@ -162,6 +161,40 @@ Category.join_recursive do |query|
 end
 ```
 
+### NOCYCLE
+
+Recursive query will loop if hierarchy contains cycles (your graph is not acyclic).
+`NOCYCLE` clause, which is turned off by default, could prevent it.
+
+Loop example:
+
+```ruby
+node_1 = Category.create
+node_2 = Category.create(:parent => node_1)
+
+node_1.parent = node_2
+node_1.save
+```
+
+`node_1` and `node_2` now link to each other, so following query will never end:
+
+```ruby
+Category.join_recursive do |query|
+  query.connect_by(:id => :parent_id)
+       .start_with(:id => node_1.id)
+end
+```
+
+`#nocycle` method will prevent endless loop:
+
+```ruby
+Category.join_recursive do |query|
+  query.connect_by(:id => :parent_id)
+       .start_with(:id => node_1.id)
+       .nocycle
+end
+```
+
 ## Generated SQL queries
 
 Under the hood this extensions builds `INNER JOIN` to recursive subquery.
@@ -175,6 +208,7 @@ Category.join_recursive do |query|
        .select(:depth)
        .where(query.prior[:depth].lteq(5))
        .order_siblings(:position)
+       .nocycle
 end
 ```
 
@@ -187,7 +221,8 @@ FROM "categories" INNER JOIN (
         SELECT depth,
                "categories"."id",
                "categories"."parent_id",
-               ARRAY["categories"."position"] AS __order_column
+               ARRAY["categories"."position"] AS __order_column,
+               ARRAY["categories"."id"] AS __path
         FROM "categories"
         WHERE "categories"."parent_id" IS NULL
 
@@ -196,21 +231,21 @@ FROM "categories" INNER JOIN (
         SELECT "categories"."depth",
                "categories"."id",
                "categories"."parent_id",
-               "categories__recursive"."__order_column" || "categories"."position"
+               "categories__recursive"."__order_column" || "categories"."position",
+               "categories__recursive"."__path" || "categories"."id"
         FROM "categories" INNER JOIN
              "categories__recursive" ON "categories__recursive"."id" = "categories"."parent_id"
-        WHERE ("categories__recursive"."depth" <= 5)
+        WHERE ("categories__recursive"."depth" <= 5) AND
+              NOT ("categories"."id" = ANY("categories__recursive"."__path"))
     )
     SELECT "categories__recursive".* FROM "categories__recursive"
 ) AS "categories__recursive" ON "categories"."id" = "categories__recursive"."id"
 ORDER BY "categories__recursive"."__order_column" ASC
 ```
 
-
 ## Future plans
 
 * Oracle support
-* NOCYCLE filter
 
 ## Contributing
 
