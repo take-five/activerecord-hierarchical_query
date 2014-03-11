@@ -203,9 +203,10 @@ For example, this piece of code
 
 ```ruby
 Category.join_recursive do |query|
-  query.start_with(:parent_id => nil)
+  query.start_with(:parent_id => nil) { select('0 LEVEL') }
        .connect_by(:id => :parent_id)
        .select(:depth)
+       .select(query.prior[:LEVEL] + 1, :start_with => false)
        .where(query.prior[:depth].lteq(5))
        .order_siblings(:position)
        .nocycle
@@ -219,6 +220,7 @@ SELECT "categories".*
 FROM "categories" INNER JOIN (
     WITH RECURSIVE "categories__recursive" AS (
         SELECT depth,
+               0 LEVEL,
                "categories"."id",
                "categories"."parent_id",
                ARRAY["categories"."position"] AS __order_column,
@@ -229,6 +231,7 @@ FROM "categories" INNER JOIN (
         UNION ALL
 
         SELECT "categories"."depth",
+               "categories__recursive"."LEVEL" + 1,
                "categories"."id",
                "categories"."parent_id",
                "categories__recursive"."__order_column" || "categories"."position",
@@ -246,6 +249,13 @@ ORDER BY "categories__recursive"."__order_column" ASC
 ## Future plans
 
 * Oracle support
+
+## Related resources
+
+* [About hierarchical queries (Wikipedia)](http://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL)
+* [Hierarchical queries in Oracle](http://docs.oracle.com/cd/B19306_01/server.102/b14200/queries003.htm)
+* [Recursive queries in PostgreSQL](http://www.postgresql.org/docs/9.3/static/queries-with.html)
+* [Using Recursive SQL with ActiveRecord trees](http://hashrocket.com/blog/posts/recursive-sql-in-activerecord)
 
 ## Contributing
 
