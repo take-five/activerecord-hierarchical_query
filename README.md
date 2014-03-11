@@ -4,6 +4,7 @@
 [![Code Climate](https://codeclimate.com/github/take-five/activerecord-hierarchical_query.png)](https://codeclimate.com/github/take-five/activerecord-hierarchical_query)
 [![Coverage Status](https://coveralls.io/repos/take-five/activerecord-hierarchical_query/badge.png)](https://coveralls.io/r/take-five/activerecord-hierarchical_query)
 [![Dependency Status](https://gemnasium.com/take-five/activerecord-hierarchical_query.png)](https://gemnasium.com/take-five/activerecord-hierarchical_query)
+[![Gem Version](https://badge.fury.io/rb/activerecord-hierarchical_query.png)](http://badge.fury.io/rb/activerecord-hierarchical_query)
 
 Create hierarchical queries using simple DSL, recursively traverse trees using single SQL query.
 
