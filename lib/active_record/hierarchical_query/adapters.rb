@@ -10,6 +10,7 @@ module ActiveRecord
 
       ADAPTERS = Hash[
         :PostgreSQL => :PostgreSQL,
+        :PostGIS => :PostgreSQL,
         :OracleEnhanced => :Oracle
       ].stringify_keys
 
