@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 gem "activerecord", "~> 3.2.0"
-gem "activerecord-oracle_enhanced-adapter", "~> 1.4.0", :group=>:oracle
+gem "activerecord-oracle_enhanced-adapter", "~> 1.4.0", :group => :oracle
 
 group :local do
   gem "yard"
@@ -17,12 +17,12 @@ group :pg, :travis do
 end
 
 group :oracle do
-  gem "ruby-oci8", "~> 2.1.0", :type=>:development
-  gem "activerecord-oracle_enhanced-adapter", ">= 1.4.0", :type=>:development
+  gem "ruby-oci8", "~> 2.1.0", :type => :development
+  gem "activerecord-oracle_enhanced-adapter", ">= 1.4.0", :type => :development
 end
 
 group :travis do
   gem "coveralls"
 end
 
-gemspec :path=>".././"
+gemspec :path => "../"
