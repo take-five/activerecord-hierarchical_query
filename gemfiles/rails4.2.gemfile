@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 gem "pg", "~> 0.17.1"
-gem "activerecord", "~> 4.1.0"
+gem "activerecord", "~> 4.2.0.rc3"
 
 group :local do
   gem "yard"

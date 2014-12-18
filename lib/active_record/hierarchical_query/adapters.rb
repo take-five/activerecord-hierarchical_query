@@ -10,8 +10,7 @@ module ActiveRecord
 
       ADAPTERS = Hash[
         :PostgreSQL => :PostgreSQL,
-        :PostGIS => :PostgreSQL,
-        :OracleEnhanced => :Oracle
+        :PostGIS => :PostgreSQL
       ].stringify_keys
 
       def self.autoload(name, path = name.to_s.underscore)
@@ -19,7 +18,6 @@ module ActiveRecord
       end
 
       autoload :PostgreSQL, 'postgresql'
-      autoload :Oracle
 
       def self.lookup(klass)
         name = klass.connection.adapter_name

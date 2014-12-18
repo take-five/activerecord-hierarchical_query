@@ -3,19 +3,18 @@ require 'pathname'
 require 'logger'
 
 ENV['TZ'] = 'UTC'
-ENV['DB'] ||= 'pg'
 
 SPEC_ROOT = Pathname.new(File.dirname(__FILE__))
 
 require 'bundler'
-Bundler.setup(:default, ENV['TRAVIS'] ? :travis : :local, ENV['DB'].to_sym)
+Bundler.setup(:default, ENV['TRAVIS'] ? :travis : :local)
 
 require 'rspec'
 require 'database_cleaner'
 require 'active_record'
 
 ActiveRecord::Base.configurations = YAML.load(SPEC_ROOT.join('database.yml').read)
-ActiveRecord::Base.establish_connection(ENV['DB'].to_sym)
+ActiveRecord::Base.establish_connection(:pg)
 ActiveRecord::Base.logger = Logger.new(ENV['DEBUG'] ? $stderr : '/dev/null')
 ActiveRecord::Base.logger.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime.strftime('%H:%M:%S.%L')}: #{msg}\n"

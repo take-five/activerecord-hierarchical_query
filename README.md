@@ -247,10 +247,6 @@ FROM "categories" INNER JOIN (
 ORDER BY "categories__recursive"."__order_column" ASC
 ```
 
-## Future plans
-
-* Oracle support
-
 ## Related resources
 
 * [About hierarchical queries (Wikipedia)](http://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL)

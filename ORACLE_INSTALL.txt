@@ -1,3 +1,0 @@
-Use vagrant:
-
-https://github.com/hilverd/vagrant-ubuntu-oracle-xe

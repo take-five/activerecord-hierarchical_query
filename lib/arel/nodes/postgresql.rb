@@ -1,3 +1,5 @@
+require 'arel/visitors/to_sql'
+
 module Arel
   module Nodes
     class PostgresArray < Node
@@ -14,7 +16,7 @@ module Arel
   end
 
   module Visitors
-    class ToSql < Arel::Visitors::Visitor
+    class ToSql < ToSql.superclass
       private
       def visit_Arel_Nodes_PostgresArray o, *a
         "ARRAY[#{visit o.values, *a}]"

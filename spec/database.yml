@@ -3,11 +3,3 @@ pg:
   database: hierarchical_query_test
   username: vagrant
   min_messages: ERROR
-
-oracle:
-  adapter: oracle_enhanced
-  host: localhost
-  port: 1521
-  database: xe
-  username: system
-  password: manager
