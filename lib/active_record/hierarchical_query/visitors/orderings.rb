@@ -34,7 +34,7 @@ module ActiveRecord
         end
 
         def should_order_cte?
-          orderings.any? && builder.limit_value || builder.offset_value
+          orderings.any? && (builder.limit_value || builder.offset_value)
         end
 
         def orderings

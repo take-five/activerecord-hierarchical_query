@@ -13,6 +13,7 @@ module ActiveRecord
       end
 
       def build
+        # p inner_join.to_sql
         relation = @relation.joins(inner_join.to_sql)
 
         adapter.visit(:joined_relation, relation)

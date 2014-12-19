@@ -123,10 +123,21 @@ describe ActiveRecord::HierarchicalQuery do
           klass.join_recursive do
             connect_by(:id => :parent_id).
             start_with(:parent_id => nil).
-            order_siblings(:name).
             limit(2).
             offset(2)
-          end
+          end.size
+        ).to eq 2
+      end
+
+      it 'limits all rows if ordering given' do
+        expect(
+            klass.join_recursive do
+              connect_by(:id => :parent_id).
+              start_with(:parent_id => nil).
+              order_siblings(:name).
+              limit(2).
+              offset(2)
+            end
         ).to eq ordered_nodes[2...4]
       end
     end
