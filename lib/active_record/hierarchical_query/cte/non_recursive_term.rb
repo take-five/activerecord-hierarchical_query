@@ -7,7 +7,7 @@ module ActiveRecord
         DISALLOWED_CLAUSES = :order, :limit, :offset, :group, :having
 
         attr_reader :query
-        delegate :builder, :adapter, :to => :query
+        delegate :builder, :to => :query
         delegate :start_with_value, :klass, :to => :builder
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
@@ -20,7 +20,9 @@ module ActiveRecord
                       .except(*DISALLOWED_CLAUSES)
                       .arel
 
-          adapter.visit(:non_recursive, arel)
+          arel.project(*query.orderings.non_recursive_projections)
+
+          query.cycle_detector.apply_to_non_recursive(arel)
         end
 
         private

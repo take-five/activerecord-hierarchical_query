@@ -7,7 +7,6 @@ module ActiveRecord
 
         delegate :recursive_table,
                  :join_conditions,
-                 :adapter,
                  :to => :query
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
@@ -20,7 +19,9 @@ module ActiveRecord
                       .arel
                       .join(recursive_table).on(join_conditions)
 
-          adapter.visit(:recursive, arel)
+          arel.project(*query.orderings.recursive_projections)
+
+          query.cycle_detector.apply_to_recursive(arel)
         end
 
         private

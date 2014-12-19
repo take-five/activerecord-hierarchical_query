@@ -18,20 +18,18 @@ module ActiveRecord
 
         private
         def connect_by_columns
-          extractor.call(@query.join_conditions).map { |column| column.name.to_s }
+          extract_from(@query.join_conditions).map { |column| column.name.to_s }
         end
 
-        def extractor
+        def extract_from(arel)
           target = []
 
-          ->(arel) {
-            visitor = Arel::Visitors::DepthFirst.new do |node|
-              target << node if node.is_a?(Arel::Attributes::Attribute)
-            end
-            visitor.accept(arel)
+          visitor = Arel::Visitors::DepthFirst.new do |node|
+            target << node if node.is_a?(Arel::Attributes::Attribute)
+          end
+          visitor.accept(arel)
 
-            target
-          }
+          target
         end
       end
     end

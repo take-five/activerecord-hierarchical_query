@@ -4,6 +4,7 @@ require 'active_support/core_ext/array/extract_options'
 
 require 'active_record/hierarchical_query/cte/query'
 require 'active_record/hierarchical_query/join_builder'
+require 'arel/nodes/postgresql'
 
 module ActiveRecord
   module HierarchicalQuery
@@ -19,7 +20,7 @@ module ActiveRecord
                   :nocycle_value
 
       # @api private
-      CHILD_SCOPE_METHODS = :where, :joins, :group, :having
+      CHILD_SCOPE_METHODS = :where, :joins, :group, :having, :bind
 
       def initialize(klass)
         @klass = klass
@@ -48,6 +49,12 @@ module ActiveRecord
       #              .connect_by(:id => :parent_id)
       #   end
       #
+      # @example When String given
+      #    MyModel.join_recursive do |hierarchy|
+      #      hierararchy.start_with('parent_id = ?', 1)
+      #                 .connect_by(:id => :parent_id)
+      #    end
+      #
       # @example When block given
       #   MyModel.join_recursive do |hierarchy|
       #     hierarchy.start_with { |root| root.where(:parent_id => nil) }
@@ -67,14 +74,14 @@ module ActiveRecord
       #              .select('_path || id', :start_with => false) # `:start_with => false` tells not to include this expression into START WITH clause
       #   end
       #
-      # @param [ActiveRecord::Relation, Hash, nil] scope root scope (optional).
+      # @param [ActiveRecord::Relation, Hash, String, nil] scope root scope (optional).
       # @return [ActiveRecord::HierarchicalQuery::Builder] self
-      def start_with(scope = nil, &block)
+      def start_with(scope = nil, *arguments, &block)
         raise ArgumentError, 'START WITH: scope or block expected, none given' unless scope || block
 
         case scope
-          when Hash
-            @start_with_value = klass.where(scope)
+          when Hash, String
+            @start_with_value = klass.where(scope, *arguments)
 
           when ActiveRecord::Relation
             @start_with_value = scope
@@ -166,6 +173,7 @@ module ActiveRecord
       # @!method joins(*tables)
       # @!method group(*values)
       # @!method having(*conditions)
+      # @!method bind(value)
       CHILD_SCOPE_METHODS.each do |method|
         define_method(method) do |*args|
           @child_scope_value = @child_scope_value.public_send(method, *args)

@@ -1,8 +1,6 @@
 module ActiveRecord
   module HierarchicalQuery
     class JoinBuilder
-      delegate :adapter, :to => :@query
-
       # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
@@ -13,10 +11,9 @@ module ActiveRecord
       end
 
       def build
-        # p inner_join.to_sql
         relation = @relation.joins(inner_join.to_sql)
 
-        adapter.visit(:joined_relation, relation)
+        apply_orderings(relation)
       end
 
       private
@@ -42,6 +39,14 @@ module ActiveRecord
 
       def aliased_subquery
         Arel::Nodes::As.new(subquery, @alias)
+      end
+
+      def apply_orderings(relation)
+        if (orderings = @query.orderings.joined_relation_orderings).any?
+          relation.order(*orderings)
+        else
+          relation
+        end
       end
     end
   end

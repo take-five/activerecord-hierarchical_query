@@ -1,8 +1,9 @@
 # coding: utf-8
 
-require 'active_record/hierarchical_query/adapters'
 require 'active_record/hierarchical_query/cte/columns'
+require 'active_record/hierarchical_query/cte/cycle_detector'
 require 'active_record/hierarchical_query/cte/union_term'
+require 'active_record/hierarchical_query/cte/orderings'
 
 module ActiveRecord
   module HierarchicalQuery
@@ -10,21 +11,29 @@ module ActiveRecord
       # CTE query builder
       class Query
         attr_reader :builder,
-                    :adapter,
-                    :columns
+                    :columns,
+                    :orderings,
+                    :cycle_detector
 
         delegate :klass, :table, :to => :builder
 
         # @param [ActiveRecord::HierarchicalQuery::Builder] builder
         def initialize(builder)
           @builder = builder
-          @adapter = Adapters.lookup(klass).new(self)
           @columns = Columns.new(self)
+          @orderings = Orderings.new(self)
+          @cycle_detector = CycleDetector.new(self)
         end
 
         # @return [Arel::SelectManager]
         def arel
-          adapter.visit(:cte, build_arel)
+          Arel::SelectManager.new(table.engine).
+              with(:recursive, with_query).
+              from(recursive_table).
+              project(recursive_table[Arel.star]).
+              take(builder.limit_value).
+              skip(builder.offset_value).
+              order(*orderings.cte_orderings)
         end
 
         # @return [Arel::Table]
@@ -49,15 +58,6 @@ module ActiveRecord
 
         def union_term
           UnionTerm.new(self)
-        end
-
-        def build_arel
-          Arel::SelectManager.new(table.engine).
-            with(:recursive, with_query).
-            from(recursive_table).
-            project(recursive_table[Arel.star]).
-            take(builder.limit_value).
-            skip(builder.offset_value)
         end
       end
     end
