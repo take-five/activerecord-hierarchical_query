@@ -2,13 +2,16 @@
 
 require 'active_support/core_ext/array/extract_options'
 
-require 'active_record/hierarchical_query/cte/query_builder'
+require 'active_record/hierarchical_query/orderings'
 require 'active_record/hierarchical_query/join_builder'
 require 'arel/nodes/postgresql'
 
 module ActiveRecord
   module HierarchicalQuery
     class Query
+      # @api private
+      ORDERING_COLUMN_NAME = '__order_column'.freeze
+
       # @api private
       attr_reader :klass,
                   :start_with_value,
@@ -24,9 +27,9 @@ module ActiveRecord
 
       def initialize(klass)
         @klass = klass
-        @query_builder = CTE::QueryBuilder.new(self)
 
-        @start_with_value = nil
+        # start with :all
+        @start_with_value = klass.__send__(HierarchicalQuery::DELEGATOR_SCOPE)
         @connect_by_value = nil
         @child_scope_value = klass
         @limit_value = nil
@@ -270,7 +273,18 @@ module ActiveRecord
       # @return [Arel::Nodes::Node]
       # @api private
       def join_conditions
-        connect_by_value[recursive_table, table]
+        connect_by_value.call(recursive_table, table)
+      end
+
+      # @return [ActiveRecord::HierarchicalQuery::Orderings]
+      # @api private
+      def orderings
+        @orderings ||= Orderings.new(order_values, table)
+      end
+
+      # @api private
+      def ordering_column_name
+        ORDERING_COLUMN_NAME
       end
 
       # Builds recursive query and joins it to given +relation+.
@@ -286,7 +300,7 @@ module ActiveRecord
 
         table_alias = join_options.fetch(:as, "#{table.name}__recursive")
 
-        JoinBuilder.new(@query_builder, relation, table_alias).build
+        JoinBuilder.new(self, relation, table_alias).build
       end
 
       private

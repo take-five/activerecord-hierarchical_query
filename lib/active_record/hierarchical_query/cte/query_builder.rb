@@ -3,7 +3,6 @@
 require 'active_record/hierarchical_query/cte/columns'
 require 'active_record/hierarchical_query/cte/cycle_detector'
 require 'active_record/hierarchical_query/cte/union_term'
-require 'active_record/hierarchical_query/cte/orderings'
 
 module ActiveRecord
   module HierarchicalQuery
@@ -12,7 +11,6 @@ module ActiveRecord
       class QueryBuilder
         attr_reader :query,
                     :columns,
-                    :orderings,
                     :cycle_detector
 
         delegate :klass, :table, :recursive_table, :to => :query
@@ -20,23 +18,27 @@ module ActiveRecord
         # @param [ActiveRecord::HierarchicalQuery::Query] query
         def initialize(query)
           @query = query
-          @columns = Columns.new(self)
-          @orderings = Orderings.new(self)
-          @cycle_detector = CycleDetector.new(self)
+          @columns = Columns.new(@query)
+          @cycle_detector = CycleDetector.new(@query)
         end
 
         # @return [Arel::SelectManager]
-        def arel
-          Arel::SelectManager.new(table.engine).
-              with(:recursive, with_query).
-              from(recursive_table).
-              project(recursive_table[Arel.star]).
-              take(query.limit_value).
-              skip(query.offset_value).
-              order(*orderings.cte_orderings)
+        def build_arel
+          build_manager
+          build_select
+          build_limits
+          build_order
+
+          @arel
         end
 
         private
+        def build_manager
+          @arel = Arel::SelectManager.new(table.engine).
+              with(:recursive, with_query).
+              from(recursive_table)
+        end
+
         # "categories__recursive" AS (
         #   SELECT ... FROM "categories"
         #   UNION ALL
@@ -49,6 +51,26 @@ module ActiveRecord
 
         def union_term
           UnionTerm.new(self)
+        end
+
+        def build_select
+          @arel.project(recursive_table[Arel.star])
+        end
+
+        def build_limits
+          @arel.take(query.limit_value).skip(query.offset_value)
+        end
+
+        def build_order
+          @arel.order(order_column.asc) if should_order?
+        end
+
+        def should_order?
+          query.orderings.any? && (query.limit_value || query.offset_value)
+        end
+
+        def order_column
+          recursive_table[query.ordering_column_name]
         end
       end
     end

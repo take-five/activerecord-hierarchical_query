@@ -1,11 +1,14 @@
+require 'active_record/hierarchical_query/cte/query_builder'
+
 module ActiveRecord
   module HierarchicalQuery
     class JoinBuilder
-      # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+      # @param [ActiveRecord::HierarchicalQuery::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
-      def initialize(builder, join_to, subquery_alias)
-        @builder = builder
+      def initialize(query, join_to, subquery_alias)
+        @query = query
+        @builder = CTE::QueryBuilder.new(query)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
       end
@@ -26,7 +29,7 @@ module ActiveRecord
       end
 
       def foreign_key
-        @alias[@builder.klass.primary_key]
+        @alias[@query.klass.primary_key]
       end
 
       def constraint
@@ -34,7 +37,7 @@ module ActiveRecord
       end
 
       def subquery
-        Arel::Nodes::Grouping.new(@builder.arel.ast)
+        Arel::Nodes::Grouping.new(@builder.build_arel.ast)
       end
 
       def aliased_subquery
@@ -42,8 +45,8 @@ module ActiveRecord
       end
 
       def apply_orderings(relation)
-        if (orderings = @builder.orderings.joined_relation_orderings).any?
-          relation.order(*orderings)
+        if @query.orderings.any?
+          relation.order(@query.recursive_table[@query.ordering_column_name].asc)
         else
           relation
         end
