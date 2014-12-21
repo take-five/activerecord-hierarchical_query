@@ -3,7 +3,7 @@
 require 'active_support/lazy_load_hooks'
 
 require 'active_record/hierarchical_query/version'
-require 'active_record/hierarchical_query/builder'
+require 'active_record/hierarchical_query/query'
 require 'active_record/version'
 
 module ActiveRecord
@@ -26,20 +26,20 @@ module ActiveRecord
     # @option join_options [String, Symbol] :as aliased name of joined
     #   table (`%table_name%__recursive` by default)
     # @yield [query]
-    # @yieldparam [ActiveRecord::HierarchicalQuery::Builder] query Hierarchical query builder
+    # @yieldparam [ActiveRecord::HierarchicalQuery::Query] query Hierarchical query
     # @raise [ArgumentError] if block is omitted
     def join_recursive(join_options = {}, &block)
       raise ArgumentError, 'block expected' unless block_given?
 
-      builder = Builder.new(klass)
+      query = Query.new(klass)
 
       if block.arity == 0
-        builder.instance_eval(&block)
+        query.instance_eval(&block)
       else
-        block.call(builder)
+        block.call(query)
       end
 
-      builder.join_to(self, join_options)
+      query.join_to(self, join_options)
     end
   end
 end

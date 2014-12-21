@@ -5,9 +5,9 @@ module ActiveRecord
   module HierarchicalQuery
     module CTE
       class UnionTerm
-        # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
-        def initialize(query)
-          @query = query
+        # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+        def initialize(builder)
+          @builder = builder
         end
 
         def arel
@@ -16,11 +16,11 @@ module ActiveRecord
 
         private
         def recursive_term
-          RecursiveTerm.new(@query).arel
+          RecursiveTerm.new(@builder).arel
         end
 
         def non_recursive_term
-          NonRecursiveTerm.new(@query).arel
+          NonRecursiveTerm.new(@builder).arel
         end
       end
     end

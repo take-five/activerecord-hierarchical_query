@@ -4,13 +4,14 @@ module ActiveRecord
       class CycleDetector
         COLUMN_NAME = '__path'.freeze
 
-        attr_reader :query
+        attr_reader :builder
 
-        delegate :builder, :to => :query
-        delegate :klass, :table, :to => :builder
+        delegate :query, :to => :builder
+        delegate :klass, :table, :to => :query
 
-        def initialize(query)
-          @query = query
+        # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+        def initialize(builder)
+          @builder = builder
         end
 
         def apply_to_non_recursive(arel)
@@ -32,7 +33,7 @@ module ActiveRecord
 
         private
         def enabled?
-          builder.nocycle_value
+          query.nocycle_value
         end
 
         def column_name
@@ -40,7 +41,7 @@ module ActiveRecord
         end
 
         def parent_column
-          query.recursive_table[column_name]
+          builder.recursive_table[column_name]
         end
 
         def primary_key

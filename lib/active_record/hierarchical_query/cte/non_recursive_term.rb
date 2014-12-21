@@ -6,23 +6,23 @@ module ActiveRecord
       class NonRecursiveTerm
         DISALLOWED_CLAUSES = :order, :limit, :offset, :group, :having
 
-        attr_reader :query
-        delegate :builder, :to => :query
-        delegate :start_with_value, :klass, :to => :builder
+        attr_reader :builder
+        delegate :query, :to => :builder
+        delegate :start_with_value, :klass, :to => :query
 
-        # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
-        def initialize(query)
-          @query = query
+        # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+        def initialize(builder)
+          @builder = builder
         end
 
         def arel
-          arel = scope.select(query.columns)
+          arel = scope.select(builder.columns)
                       .except(*DISALLOWED_CLAUSES)
                       .arel
 
-          arel.project(*query.orderings.non_recursive_projections)
+          arel.project(*builder.orderings.non_recursive_projections)
 
-          query.cycle_detector.apply_to_non_recursive(arel)
+          builder.cycle_detector.apply_to_non_recursive(arel)
         end
 
         private

@@ -3,30 +3,30 @@ module ActiveRecord
     module CTE
       class RecursiveTerm
         # @return [ActiveRecord::HierarchicalQuery::CTE::Query]
-        attr_reader :query
+        attr_reader :builder
 
         delegate :recursive_table,
                  :join_conditions,
-                 :to => :query
+                 :to => :builder
 
-        # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
-        def initialize(query)
-          @query = query
+        # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+        def initialize(builder)
+          @builder = builder
         end
 
         def arel
-          arel = scope.select(query.columns)
+          arel = scope.select(builder.columns)
                       .arel
                       .join(recursive_table).on(join_conditions)
 
-          arel.project(*query.orderings.recursive_projections)
+          arel.project(*builder.orderings.recursive_projections)
 
-          query.cycle_detector.apply_to_recursive(arel)
+          builder.cycle_detector.apply_to_recursive(arel)
         end
 
         private
         def scope
-          query.builder.child_scope_value
+          builder.query.child_scope_value
         end
       end
     end

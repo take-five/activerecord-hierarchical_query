@@ -9,15 +9,15 @@ module ActiveRecord
             :boolean, :itet, :cidr, :ltree
         ]
 
-        attr_reader :query
+        attr_reader :builder
 
-        delegate :builder, :recursive_table, :to => :query
-        delegate :klass, :table, :to => :builder
+        delegate :query, :recursive_table, :to => :builder
+        delegate :klass, :table, :to => :query
         delegate :first, :to => :orderings
 
-        # @param [ActiveRecord::HierarchicalQuery::CTE::Query] query
-        def initialize(query)
-          @query = query
+        # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
+        def initialize(builder)
+          @builder = builder
         end
 
         def non_recursive_projections
@@ -62,11 +62,11 @@ module ActiveRecord
         end
 
         def should_order_cte?
-          orderings.any? && (builder.limit_value || builder.offset_value)
+          orderings.any? && (query.limit_value || query.offset_value)
         end
 
         def orderings
-          @orderings ||= builder.order_values.each_with_object([]) do |value, orderings|
+          @orderings ||= query.order_values.each_with_object([]) do |value, orderings|
             orderings.concat Array.wrap(as_orderings(value))
           end
         end

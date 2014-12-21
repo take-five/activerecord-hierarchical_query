@@ -9,17 +9,17 @@ module ActiveRecord
   module HierarchicalQuery
     module CTE
       # CTE query builder
-      class Query
-        attr_reader :builder,
+      class QueryBuilder
+        attr_reader :query,
                     :columns,
                     :orderings,
                     :cycle_detector
 
-        delegate :klass, :table, :to => :builder
+        delegate :klass, :table, :to => :query
 
-        # @param [ActiveRecord::HierarchicalQuery::Builder] builder
-        def initialize(builder)
-          @builder = builder
+        # @param [ActiveRecord::HierarchicalQuery::Query] query
+        def initialize(query)
+          @query = query
           @columns = Columns.new(self)
           @orderings = Orderings.new(self)
           @cycle_detector = CycleDetector.new(self)
@@ -31,8 +31,8 @@ module ActiveRecord
               with(:recursive, with_query).
               from(recursive_table).
               project(recursive_table[Arel.star]).
-              take(builder.limit_value).
-              skip(builder.offset_value).
+              take(query.limit_value).
+              skip(query.offset_value).
               order(*orderings.cte_orderings)
         end
 
@@ -42,7 +42,7 @@ module ActiveRecord
         end
 
         def join_conditions
-          builder.connect_by_value[recursive_table, table]
+          query.connect_by_value[recursive_table, table]
         end
 
         private

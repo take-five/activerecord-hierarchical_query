@@ -2,13 +2,13 @@
 
 require 'active_support/core_ext/array/extract_options'
 
-require 'active_record/hierarchical_query/cte/query'
+require 'active_record/hierarchical_query/cte/query_builder'
 require 'active_record/hierarchical_query/join_builder'
 require 'arel/nodes/postgresql'
 
 module ActiveRecord
   module HierarchicalQuery
-    class Builder
+    class Query
       # @api private
       attr_reader :klass,
                   :start_with_value,
@@ -24,7 +24,7 @@ module ActiveRecord
 
       def initialize(klass)
         @klass = klass
-        @query = CTE::Query.new(self)
+        @query_builder = CTE::QueryBuilder.new(self)
 
         @start_with_value = nil
         @connect_by_value = nil
@@ -75,7 +75,7 @@ module ActiveRecord
       #   end
       #
       # @param [ActiveRecord::Relation, Hash, String, nil] scope root scope (optional).
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def start_with(scope = nil, *arguments, &block)
         raise ArgumentError, 'START WITH: scope or block expected, none given' unless scope || block
 
@@ -124,7 +124,7 @@ module ActiveRecord
       # @yieldparam [Arel::Table] parent parent rows table instance.
       # @yieldparam [Arel::Table] child child rows table instance.
       # @yieldreturn [Arel::Nodes::Node] relationship condition expressed as Arel node.
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def connect_by(conditions = nil, &block)
         # convert hash to block which returns Arel node
         if conditions
@@ -143,7 +143,7 @@ module ActiveRecord
       #
       # @param [Array<Symbol, String, Arel::Attributes::Attribute, Arel::Nodes::Node>] columns
       # @option columns [true, false] :start_with include given columns to START WITH clause (true by default)
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def select(*columns)
         options = columns.extract_options!
 
@@ -185,7 +185,7 @@ module ActiveRecord
       # Specifies a limit for the number of records to retrieve.
       #
       # @param [Fixnum] value
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def limit(value)
         @limit_value = value
 
@@ -195,7 +195,7 @@ module ActiveRecord
       # Specifies the number of rows to skip before returning row
       #
       # @param [Fixnum] value
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def offset(value)
         @offset_value = value
 
@@ -217,7 +217,7 @@ module ActiveRecord
       #   end
       #
       # @param [<Symbol, String, Arel::Nodes::Node, Arel::Attributes::Attribute>] columns
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def order_siblings(*columns)
         @order_values += columns
 
@@ -229,7 +229,7 @@ module ActiveRecord
       # endless loops if your tree could contain cycles.
       #
       # @param [true, false] value
-      # @return [ActiveRecord::HierarchicalQuery::Builder] self
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
       def nocycle(value = true)
         @nocycle_value = value
         self
@@ -248,7 +248,7 @@ module ActiveRecord
       #
       # @return [Arel::Table]
       def prior
-        @query.recursive_table
+        @query_builder.recursive_table
       end
       alias_method :previous, :prior
 
@@ -278,7 +278,7 @@ module ActiveRecord
 
         table_alias = join_options.fetch(:as, "#{table.name}__recursive")
 
-        JoinBuilder.new(@query, relation, table_alias).build
+        JoinBuilder.new(@query_builder, relation, table_alias).build
       end
 
       private
