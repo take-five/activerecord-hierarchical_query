@@ -11,8 +11,8 @@ module ActiveRecord
 
         attr_reader :builder
 
-        delegate :query, :recursive_table, :to => :builder
-        delegate :klass, :table, :to => :query
+        delegate :query, :to => :builder
+        delegate :klass, :table, :recursive_table, :to => :query
         delegate :first, :to => :orderings
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder

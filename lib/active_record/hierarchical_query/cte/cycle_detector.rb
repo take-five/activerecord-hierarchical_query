@@ -41,7 +41,7 @@ module ActiveRecord
         end
 
         def parent_column
-          builder.recursive_table[column_name]
+          query.recursive_table[column_name]
         end
 
         def primary_key

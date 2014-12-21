@@ -15,7 +15,7 @@ module ActiveRecord
                     :orderings,
                     :cycle_detector
 
-        delegate :klass, :table, :to => :query
+        delegate :klass, :table, :recursive_table, :to => :query
 
         # @param [ActiveRecord::HierarchicalQuery::Query] query
         def initialize(query)
@@ -34,11 +34,6 @@ module ActiveRecord
               take(query.limit_value).
               skip(query.offset_value).
               order(*orderings.cte_orderings)
-        end
-
-        # @return [Arel::Table]
-        def recursive_table
-          @recursive_table ||= Arel::Table.new("#{table.name}__recursive")
         end
 
         def join_conditions

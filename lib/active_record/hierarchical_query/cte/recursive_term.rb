@@ -5,8 +5,8 @@ module ActiveRecord
         # @return [ActiveRecord::HierarchicalQuery::CTE::Query]
         attr_reader :builder
 
-        delegate :recursive_table,
-                 :join_conditions,
+        delegate :query, :to => :builder
+        delegate :join_conditions,
                  :to => :builder
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
@@ -17,7 +17,7 @@ module ActiveRecord
         def arel
           arel = scope.select(builder.columns)
                       .arel
-                      .join(recursive_table).on(join_conditions)
+                      .join(query.recursive_table).on(join_conditions)
 
           arel.project(*builder.orderings.recursive_projections)
 

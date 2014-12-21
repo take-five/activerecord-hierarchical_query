@@ -248,9 +248,10 @@ module ActiveRecord
       #
       # @return [Arel::Table]
       def prior
-        @query_builder.recursive_table
+        @recursive_table ||= Arel::Table.new("#{table.name}__recursive")
       end
       alias_method :previous, :prior
+      alias_method :recursive_table, :prior
 
       # Returns object representing child rows table,
       # so it could be used in complex WHEREs.
