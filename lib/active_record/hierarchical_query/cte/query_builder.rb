@@ -36,10 +36,6 @@ module ActiveRecord
               order(*orderings.cte_orderings)
         end
 
-        def join_conditions
-          query.connect_by_value[recursive_table, table]
-        end
-
         private
         # "categories__recursive" AS (
         #   SELECT ... FROM "categories"

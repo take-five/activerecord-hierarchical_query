@@ -267,12 +267,19 @@ module ActiveRecord
         @klass.arel_table
       end
 
+      # @return [Arel::Nodes::Node]
+      # @api private
+      def join_conditions
+        connect_by_value[recursive_table, table]
+      end
+
       # Builds recursive query and joins it to given +relation+.
       #
       # @api private
       # @param [ActiveRecord::Relation] relation
       # @param [Hash] join_options
       # @option join_options [#to_s] :as joined table alias
+      # @api private
       def join_to(relation, join_options = {})
         raise 'Recursive query requires CONNECT BY clause, please use #connect_by method' unless
             connect_by_value

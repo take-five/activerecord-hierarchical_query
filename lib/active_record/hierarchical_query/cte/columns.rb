@@ -18,7 +18,7 @@ module ActiveRecord
 
         private
         def connect_by_columns
-          extract_from(@builder.join_conditions).map { |column| column.name.to_s }
+          extract_from(@builder.query.join_conditions).map { |column| column.name.to_s }
         end
 
         def extract_from(arel)
