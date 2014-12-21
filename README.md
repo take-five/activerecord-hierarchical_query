@@ -10,24 +10,57 @@ Create hierarchical queries using simple DSL, recursively traverse trees using s
 
 If a table contains hierarchical data, then you can select rows in hierarchical order using hierarchical query builder.
 
+### Traverse trees
+
+Let's say you've got an ActiveRecord model `Category` that related to itself:
+
+```ruby
+class Category < ActiveRecord::Base
+  belongs_to :parent, class_name: 'Category'
+  has_many :children, foreign_key: :parent_id, class_name: 'Category'
+end
+
+# Table definition
+# create_table :categories do |t|
+#   t.integer :parent_id
+#   t.string :name
+# end
+```
 
 ### Traverse descendants
 
 ```ruby
 Category.join_recursive do |query|
-  query.start_with(:parent_id => nil)
-       .connect_by(:id => :parent_id)
+  query.start_with(parent_id: nil)
+       .connect_by(id: :parent_id)
        .order_siblings(:name)
-end
+end # returns ActiveRecord::Relation instance
 ```
 
 ### Traverse ancestors
 
 ```ruby
 Category.join_recursive do |query|
-  query.start_with(:id => 42)
-       .connect_by(:parent_id => :id)
+  query.start_with(id: 42)
+       .connect_by(parent_id: :id)
 end
+```
+
+### Show breadcrumbs using single SQL query
+
+```ruby
+records = Category.join_recursive do |query|
+  query
+    # assume that deepest node has depth=0
+    .start_with(id: 42) { select('0 depth') }
+    # for each ancestor decrease depth by 1, do not apply
+    # following expression to first level of hierarchy
+    .select(query.prior[:depth] - 1, start_with: false)
+    .connect_by(parent_id: :id)
+end.order('depth ASC')
+
+# returned value is just regular ActiveRecord::Relation instance, so you can use its methods
+crumbs = records.pluck(:name).join(' / ')
 ```
 
 ## Requirements
@@ -57,8 +90,8 @@ and `name`. You can traverse nodes recursively starting from root rows connected
 
 ```ruby
 Category.join_recursive do
-  start_with(:parent_id => nil).
-  connect_by(:id => :parent_id).
+  start_with(parent_id: nil).
+  connect_by(id: :parent_id).
   order_siblings(:name)
 end
 ```
@@ -81,10 +114,10 @@ Hierarchical queries are processed as follows:
 
 * First, root rows are selected -- those rows that satisfy `START WITH` condition in
   order specified by `ORDER SIBLINGS` clause. In example above it's specified by
-  statements `query.start_with(:parent_id => nil)` and `query.order_siblings(:name)`.
+  statements `query.start_with(parent_id: nil)` and `query.order_siblings(:name)`.
 * Second, child rows for each root rows are selected. Each child row must satisfy
   condition specified by `CONNECT BY` clause with respect to one of the root rows
-  (`query.connect_by(:id => :parent_id)` in example above). Order of child rows is
+  (`query.connect_by(id: :parent_id)` in example above). Order of child rows is
   also specified by `ORDER SIBLINGS` clause.
 * Successive generations of child rows are selected with respect to `CONNECT BY` clause.
   First the children of each row selected in step 2 selected, then the children of those
@@ -95,9 +128,9 @@ Hierarchical queries are processed as follows:
 This clause is specified by `start_with` method:
 
 ```ruby
-Category.join_recursive { start_with(:parent_id => nil) }
-Category.join_recursive { start_with { where(:parent_id => nil) } }
-Category.join_recursive { start_with { |root_rows| root_rows.where(:parent_id => nil) } }
+Category.join_recursive { start_with(parent_id: nil) }
+Category.join_recursive { start_with { where(parent_id: nil) } }
+Category.join_recursive { start_with { |root_rows| root_rows.where(parent_id: nil) } }
 ```
 
 All of these statements are equivalent.
@@ -108,7 +141,7 @@ This clause is necessary and specified by `connect_by` method:
 
 ```ruby
 # join parent table ID columns and child table PARENT_ID column
-Category.join_recursive { connect_by(:id => :parent_id) }
+Category.join_recursive { connect_by(id: :parent_id) }
 
 # you can use block to build complex JOIN conditions
 Category.join_recursive do
@@ -126,7 +159,7 @@ You can specify order in which rows on each hierarchy level should appear:
 Category.join_recursive { order_siblings(:name) }
 
 # you can reverse order
-Category.join_recursive { order_siblings(:name => :desc) }
+Category.join_recursive { order_siblings(name: :desc) }
 
 # arbitrary strings and Arel nodes are allowed also
 Category.join_recursive { order_siblings('name ASC') }
@@ -139,7 +172,7 @@ You can filter rows on each hierarchy level by applying `WHERE` conditions:
 
 ```ruby
 Category.join_recursive do
-  connect_by(:id => :parent_id).where('name LIKE ?', 'ruby %')
+  connect_by(id: :parent_id).where('name LIKE ?', 'ruby %')
 end
 ```
 
@@ -147,7 +180,7 @@ You can even refer to parent table, just don't forget to include columns in `SEL
 
 ```ruby
 Category.join_recursive do |query|
-  query.connect_by(:id => :parent_id)
+  query.connect_by(id: :parent_id)
        .select(:name).
        .where(query.prior[:name].matches('ruby %'))
 end
@@ -157,7 +190,7 @@ Or, if Arel semantics does not fit your needs:
 
 ```ruby
 Category.join_recursive do |query|
-  query.connect_by(:id => :parent_id)
+  query.connect_by(id: :parent_id)
        .where("#{query.prior.name}.name LIKE ?", 'ruby %')
 end
 ```
@@ -171,7 +204,7 @@ Loop example:
 
 ```ruby
 node_1 = Category.create
-node_2 = Category.create(:parent => node_1)
+node_2 = Category.create(parent: node_1)
 
 node_1.parent = node_2
 node_1.save
@@ -181,8 +214,8 @@ node_1.save
 
 ```ruby
 Category.join_recursive do |query|
-  query.connect_by(:id => :parent_id)
-       .start_with(:id => node_1.id)
+  query.connect_by(id: :parent_id)
+       .start_with(id: node_1.id)
 end
 ```
 
@@ -190,8 +223,8 @@ end
 
 ```ruby
 Category.join_recursive do |query|
-  query.connect_by(:id => :parent_id)
-       .start_with(:id => node_1.id)
+  query.connect_by(id: :parent_id)
+       .start_with(id: node_1.id)
        .nocycle
 end
 ```
@@ -204,10 +237,10 @@ For example, this piece of code
 
 ```ruby
 Category.join_recursive do |query|
-  query.start_with(:parent_id => nil) { select('0 LEVEL') }
-       .connect_by(:id => :parent_id)
+  query.start_with(parent_id: nil) { select('0 LEVEL') }
+       .connect_by(id: :parent_id)
        .select(:depth)
-       .select(query.prior[:LEVEL] + 1, :start_with => false)
+       .select(query.prior[:LEVEL] + 1, start_with: false)
        .where(query.prior[:depth].lteq(5))
        .order_siblings(:position)
        .nocycle
