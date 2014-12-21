@@ -7,7 +7,7 @@ module ActiveRecord
         DISALLOWED_CLAUSES = :order, :limit, :offset, :group, :having
 
         attr_reader :builder
-        delegate :query, :to => :builder
+        delegate :query, to: :builder
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
         def initialize(builder)

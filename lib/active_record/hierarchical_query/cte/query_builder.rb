@@ -13,7 +13,7 @@ module ActiveRecord
                     :columns,
                     :cycle_detector
 
-        delegate :klass, :table, :recursive_table, :to => :query
+        delegate :klass, :table, :recursive_table, to: :query
 
         # @param [ActiveRecord::HierarchicalQuery::Query] query
         def initialize(query)

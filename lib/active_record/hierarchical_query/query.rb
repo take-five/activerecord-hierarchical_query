@@ -42,39 +42,39 @@ module ActiveRecord
       #
       # @example When scope given
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.start_with(MyModel.where(:parent_id => nil))
-      #              .connect_by(:id => :parent_id)
+      #     hierarchy.start_with(MyModel.where(parent_id: nil))
+      #              .connect_by(id: :parent_id)
       #   end
       #
       # @example When Hash given
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.start_with(:parent_id => nil)
-      #              .connect_by(:id => :parent_id)
+      #     hierarchy.start_with(parent_id: nil)
+      #              .connect_by(id: :parent_id)
       #   end
       #
       # @example When String given
       #    MyModel.join_recursive do |hierarchy|
       #      hierararchy.start_with('parent_id = ?', 1)
-      #                 .connect_by(:id => :parent_id)
+      #                 .connect_by(id: :parent_id)
       #    end
       #
       # @example When block given
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.start_with { |root| root.where(:parent_id => nil) }
-      #              .connect_by(:id => :parent_id)
+      #     hierarchy.start_with { |root| root.where(parent_id: nil) }
+      #              .connect_by(id: :parent_id)
       #   end
       #
       # @example When block with arity=0 given
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.start_with { where(:parent_id => nil) }
-      #              .connect_by(:id => :parent_id)
+      #     hierarchy.start_with { where(parent_id: nil) }
+      #              .connect_by(id: :parent_id)
       #   end
       #
       # @example Specify columns for root relation (PostgreSQL-specific)
       #   MyModel.join_recursive do |hierarchy|
       #     hierarchy.start_with { select('ARRAY[id] AS _path') }
-      #              .connect_by(:id => :parent_id)
-      #              .select('_path || id', :start_with => false) # `:start_with => false` tells not to include this expression into START WITH clause
+      #              .connect_by(id: :parent_id)
+      #              .select('_path || id', start_with: false) # `start_with: false` tells not to include this expression into START WITH clause
       #   end
       #
       # @param [ActiveRecord::Relation, Hash, String, nil] scope root scope (optional).
@@ -113,7 +113,7 @@ module ActiveRecord
       # @example Specify relationship with Hash (traverse descendants)
       #   MyModel.join_recursive do |hierarchy|
       #     # join child rows with condition `parent.id = child.parent_id`
-      #     hierarchy.connect_by(:id => :parent_id)
+      #     hierarchy.connect_by(id: :parent_id)
       #   end
       #
       # @example Specify relationship with block (traverse descendants)
@@ -209,13 +209,13 @@ module ActiveRecord
       #
       # @example
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.connect_by(:id => :parent_id)
+      #     hierarchy.connect_by(id: :parent_id)
       #              .order_siblings(:name)
       #   end
       #
       # @example
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.connect_by(:id => :parent_id)
+      #     hierarchy.connect_by(id: :parent_id)
       #              .order_siblings('name DESC, created_at ASC')
       #   end
       #
@@ -243,8 +243,8 @@ module ActiveRecord
       #
       # @example
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.connect_by(:id => :parent_id)
-      #              .start_with(:parent_id => nil) { select(:depth) }
+      #     hierarchy.connect_by(id: :parent_id)
+      #              .start_with(parent_id: nil) { select(:depth) }
       #              .select(hierarchy.table[:depth])
       #              .where(hierarchy.prior[:depth].lteq 1)
       #   end
@@ -261,8 +261,8 @@ module ActiveRecord
       #
       # @example
       #   MyModel.join_recursive do |hierarchy|
-      #     hierarchy.connect_by(:id => :parent_id)
-      #              .start_with(:parent_id => nil) { select(:depth) }
+      #     hierarchy.connect_by(id: :parent_id)
+      #              .start_with(parent_id: nil) { select(:depth) }
       #              .select(hierarchy.table[:depth])
       #              .where(hierarchy.prior[:depth].lteq 1)
       #   end

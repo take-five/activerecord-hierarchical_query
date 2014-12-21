@@ -4,7 +4,7 @@ module ActiveRecord
       class CycleDetector
         COLUMN_NAME = '__path'.freeze
 
-        delegate :klass, :table, :to => :@query
+        delegate :klass, :table, to: :@query
 
         # @param [ActiveRecord::HierarchicalQuery::Query] query
         def initialize(query)

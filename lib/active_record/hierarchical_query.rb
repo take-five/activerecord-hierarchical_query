@@ -16,10 +16,10 @@ module ActiveRecord
     #
     # @example
     #   MyModel.join_recursive do |query|
-    #     query.start_with(:parent_id => nil)
-    #          .connect_by(:id => :parent_id)
+    #     query.start_with(parent_id: nil)
+    #          .connect_by(id: :parent_id)
     #          .where('depth < ?', 5)
-    #          .order_siblings(:name => :desc)
+    #          .order_siblings(name: :desc)
     #   end
     #
     # @param [Hash] join_options
@@ -44,9 +44,9 @@ module ActiveRecord
   end
 end
 
-ActiveSupport.on_load(:active_record, :yield => true) do |base|
+ActiveSupport.on_load(:active_record, yield: true) do |base|
   class << base
-    delegate :join_recursive, :to => ActiveRecord::HierarchicalQuery::DELEGATOR_SCOPE
+    delegate :join_recursive, to: ActiveRecord::HierarchicalQuery::DELEGATOR_SCOPE
   end
 
   ActiveRecord::Relation.send :include, ActiveRecord::HierarchicalQuery

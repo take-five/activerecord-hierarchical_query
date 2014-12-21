@@ -5,7 +5,7 @@ module ActiveRecord
         # @return [ActiveRecord::HierarchicalQuery::CTE::Query]
         attr_reader :builder
 
-        delegate :query, :to => :builder
+        delegate :query, to: :builder
 
         # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
         def initialize(builder)

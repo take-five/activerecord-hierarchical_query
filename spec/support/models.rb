@@ -14,10 +14,10 @@ class Category < ActiveRecord::Base
     end
   end
 
-  belongs_to :parent, :class_name => 'Category'
-  has_many :children, :class_name => 'Category'
+  belongs_to :parent, class_name: 'Category'
+  has_many :children, class_name: 'Category'
 
-  before_save :generate_name, :unless => :name?
+  before_save :generate_name, unless: :name?
   before_save :count_depth
   before_save :count_position
 
@@ -30,7 +30,7 @@ class Category < ActiveRecord::Base
   end
 
   def count_position
-    self.position = (self.class.where(:parent_id => parent_id).maximum(:position) || 0) + 1
+    self.position = (self.class.where(parent_id: parent_id).maximum(:position) || 0) + 1
   end
 
   def ancestors
