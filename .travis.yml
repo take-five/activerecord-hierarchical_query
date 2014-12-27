@@ -8,7 +8,7 @@ gemfile:
   - gemfiles/rails3.2.gemfile
   - gemfiles/rails4.0.gemfile
   - gemfiles/rails4.1.gemfile
-#  - gemfiles/rails4.2.gemfile
+  - gemfiles/rails4.2.gemfile
 before_script:
   - rm spec/database.yml && mv spec/database.travis.yml spec/database.yml
   - psql -c 'create database hierarchical_query_test;' -U postgres
