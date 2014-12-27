@@ -24,24 +24,28 @@ module ActiveRecord
         Arel::Nodes::InnerJoin.new(aliased_subquery, constraint)
       end
 
-      def primary_key
-        @relation.table[@relation.klass.primary_key]
+      def aliased_subquery
+        Arel::Nodes::As.new(subquery, @alias)
       end
 
-      def foreign_key
-        @alias[@query.klass.primary_key]
+      def subquery
+        Arel::Nodes::Grouping.new(cte_arel.ast)
+      end
+
+      def cte_arel
+        @cte_arel ||= @builder.build_arel
       end
 
       def constraint
         Arel::Nodes::On.new(primary_key.eq(foreign_key))
       end
 
-      def subquery
-        Arel::Nodes::Grouping.new(@builder.build_arel.ast)
+      def primary_key
+        @relation.table[@relation.klass.primary_key]
       end
 
-      def aliased_subquery
-        Arel::Nodes::As.new(subquery, @alias)
+      def foreign_key
+        @alias[@query.klass.primary_key]
       end
 
       def apply_orderings(relation)
