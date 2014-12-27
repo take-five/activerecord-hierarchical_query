@@ -15,8 +15,12 @@ module ActiveRecord
 
       def build
         relation = @relation.joins(inner_join.to_sql)
+        # copy bound variables from inner subquery
+        relation.bind_values += bind_values
+        # add ordering by "__order_column"
+        relation.order_values += order_columns if ordered?
 
-        apply_orderings(relation)
+        relation
       end
 
       private
@@ -48,12 +52,16 @@ module ActiveRecord
         @alias[@query.klass.primary_key]
       end
 
-      def apply_orderings(relation)
-        if @query.orderings.any?
-          relation.order(@query.recursive_table[@query.ordering_column_name].asc)
-        else
-          relation
-        end
+      def bind_values
+        @builder.bind_values
+      end
+
+      def ordered?
+        @query.orderings.any?
+      end
+
+      def order_columns
+        [@query.recursive_table[@query.ordering_column_name].asc]
       end
     end
   end

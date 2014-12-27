@@ -10,17 +10,21 @@ module ActiveRecord
           @builder = builder
         end
 
+        def bind_values
+          non_recursive_term.bind_values + recursive_term.bind_values
+        end
+
         def arel
-          non_recursive_term.union(:all, recursive_term)
+          non_recursive_term.arel.union(:all, recursive_term.arel)
         end
 
         private
         def recursive_term
-          RecursiveTerm.new(@builder).arel
+          @rt ||= RecursiveTerm.new(@builder)
         end
 
         def non_recursive_term
-          NonRecursiveTerm.new(@builder).arel
+          @nrt ||= NonRecursiveTerm.new(@builder)
         end
       end
     end

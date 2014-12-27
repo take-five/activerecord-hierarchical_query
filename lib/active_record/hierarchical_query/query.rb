@@ -31,7 +31,7 @@ module ActiveRecord
         # start with :all
         @start_with_value = klass.__send__(HierarchicalQuery::DELEGATOR_SCOPE)
         @connect_by_value = nil
-        @child_scope_value = klass
+        @child_scope_value = klass.__send__(HierarchicalQuery::DELEGATOR_SCOPE)
         @limit_value = nil
         @offset_value = nil
         @nocycle_value = false

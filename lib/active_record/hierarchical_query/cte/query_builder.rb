@@ -22,6 +22,10 @@ module ActiveRecord
           @cycle_detector = CycleDetector.new(@query)
         end
 
+        def bind_values
+          union_term.bind_values
+        end
+
         # @return [Arel::SelectManager]
         def build_arel
           build_manager
@@ -50,7 +54,7 @@ module ActiveRecord
         end
 
         def union_term
-          UnionTerm.new(self)
+          @union_term ||= UnionTerm.new(self)
         end
 
         def build_select

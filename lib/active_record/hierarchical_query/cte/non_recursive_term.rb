@@ -14,15 +14,22 @@ module ActiveRecord
           @builder = builder
         end
 
+        def bind_values
+          scope.bind_values
+        end
+
         def arel
-          arel = scope.select(columns).arel
+          arel = scope.arel
 
           builder.cycle_detector.apply_to_non_recursive(arel)
         end
 
         private
         def scope
-          query.start_with_value.except(*DISALLOWED_CLAUSES)
+          @scope ||= query.
+              start_with_value.
+              select(columns).
+              except(*DISALLOWED_CLAUSES)
         end
 
         def columns

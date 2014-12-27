@@ -192,7 +192,7 @@ describe ActiveRecord::HierarchicalQuery do
     end
 
     describe 'binding values' do
-      xit 'binds values' do
+      it 'binds values' do
         expect(
             klass.join_recursive do |query|
               query.start_with('id = $1')

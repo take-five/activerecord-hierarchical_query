@@ -12,9 +12,12 @@ module ActiveRecord
           @builder = builder
         end
 
+        def bind_values
+          scope.bind_values
+        end
+
         def arel
-          arel = scope.select(columns)
-                      .arel
+          arel = scope.arel
                       .join(query.recursive_table).on(query.join_conditions)
 
           builder.cycle_detector.apply_to_recursive(arel)
@@ -22,7 +25,7 @@ module ActiveRecord
 
         private
         def scope
-          query.child_scope_value
+          @scope ||= query.child_scope_value.select(columns)
         end
 
         def columns
