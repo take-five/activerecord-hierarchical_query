@@ -72,7 +72,9 @@ crumbs = records.pluck(:name).join(' / ')
 
 Add this line to your application's Gemfile:
 
-    gem 'activerecord-hierarchical_query'
+```ruby
+gem 'activerecord-hierarchical_query'
+```
 
 And then execute:
 
@@ -81,6 +83,19 @@ And then execute:
 Or install it yourself as:
 
     $ gem install activerecord-hierarchical_query
+
+You'll then need to require the gem:
+
+```ruby
+require 'active_record/hierarchical_query'
+```
+
+Alternatively, the require can be placed in the `Gemfile`:
+
+```ruby
+gem 'activerecord-hierarchical_query', require: 'active_record/hierarchical_query'
+```
+
 
 ## Usage
 
