@@ -300,7 +300,7 @@ module ActiveRecord
 
         table_alias = join_options.fetch(:as, "#{table.name}__recursive")
 
-        JoinBuilder.new(self, relation, table_alias).build
+        JoinBuilder.new(self, relation, table_alias, join_options).build
       end
 
       private

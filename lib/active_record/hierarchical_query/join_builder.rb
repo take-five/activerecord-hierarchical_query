@@ -6,11 +6,12 @@ module ActiveRecord
       # @param [ActiveRecord::HierarchicalQuery::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
-      def initialize(query, join_to, subquery_alias)
+      def initialize(query, join_to, subquery_alias, join_options = {})
         @query = query
         @builder = CTE::QueryBuilder.new(query)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
+        @join_options = join_options
       end
 
       def build
@@ -49,7 +50,7 @@ module ActiveRecord
       end
 
       def foreign_key
-        @alias[@query.klass.primary_key]
+        custom_foreign_key ? @alias[custom_foreign_key] : @alias[@query.klass.primary_key]
       end
 
       def bind_values
