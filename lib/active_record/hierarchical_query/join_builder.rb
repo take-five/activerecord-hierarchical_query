@@ -49,6 +49,10 @@ module ActiveRecord
         @relation.table[@relation.klass.primary_key]
       end
 
+      def custom_foreign_key
+        @join_options[:custom_foreign_key]
+      end
+
       def foreign_key
         custom_foreign_key ? @alias[custom_foreign_key] : @alias[@query.klass.primary_key]
       end
