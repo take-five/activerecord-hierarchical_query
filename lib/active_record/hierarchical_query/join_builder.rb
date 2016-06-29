@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def custom_foreign_key
-        @join_options[:custom_foreign_key]
+        @join_options[:foreign_key]
       end
 
       def foreign_key
