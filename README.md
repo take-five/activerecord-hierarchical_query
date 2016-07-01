@@ -295,6 +295,13 @@ FROM "categories" INNER JOIN (
 ORDER BY "categories__recursive"."__order_column" ASC
 ```
 
+If you want to use a ```LEFT OUTER JOIN``` instead, add a query option for ```outer_join_hierarchical```
+```ruby
+.join_recursive(outer_join_hierarchical: true)
+```
+
+This option allows the query to return non-hierarchical entries.
+
 ## Related resources
 
 * [About hierarchical queries (Wikipedia)](http://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL)
