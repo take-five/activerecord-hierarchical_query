@@ -15,7 +15,13 @@ module ActiveRecord
       end
 
       def build
-        relation = @relation.joins(inner_join.to_sql)
+        # join using an outer join if specified
+        if(@join_options[:outer_join])
+          relation = @relation.joins(outer_join.to_sql)
+        else
+          relation = @relation.joins(inner_join.to_sql)
+        end
+
         # copy bound variables from inner subquery (remove duplicates)
         relation.bind_values |= bind_values
         # add ordering by "__order_column"
@@ -27,6 +33,10 @@ module ActiveRecord
       private
       def inner_join
         Arel::Nodes::InnerJoin.new(aliased_subquery, constraint)
+      end
+
+      def outer_join
+        Arel::Nodes::OuterJoin.new(aliased_subquery, constraint)
       end
 
       def aliased_subquery
