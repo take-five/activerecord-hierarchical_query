@@ -213,5 +213,21 @@ describe ActiveRecord::HierarchicalQuery do
         ).to match /my_table/
       end
     end
+
+    describe ':outer_join_hierarchical' do
+      it 'build an outer join' do
+        expect(
+          klass.join_recursive(outer_join_hierarchical: true) { connect_by(id: :parent_id) }.to_sql
+        ).to match /LEFT OUTER JOIN/
+      end
+    end
+
+    describe ':foreign_key' do
+      it 'uses described foreign_key when joining table to recursive view' do
+        expect(
+          klass.join_recursive(foreign_key: 'some_column') { connect_by(id: :parent_id) }.to_sql
+        ).to match /categories\"\.\"id\" = \"categories__recursive\"\.\"some_column/
+      end
+    end
   end
 end
