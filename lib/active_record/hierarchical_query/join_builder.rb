@@ -15,7 +15,12 @@ module ActiveRecord
       end
 
       def build
-        relation = @relation.joins(inner_join.to_sql)
+        # outer joins to include non-hierarchical entries if specified
+        # default option when flag is not specified is to include only entries participating
+        # in a hierarchy
+        join_sql = @join_options[:outer_join_hierarchical].present? ? outer_join.to_sql : inner_join.to_sql
+        relation = @relation.joins(join_sql)
+
         # copy bound variables from inner subquery (remove duplicates)
         relation.bind_values |= bind_values
         # add ordering by "__order_column"
@@ -27,6 +32,10 @@ module ActiveRecord
       private
       def inner_join
         Arel::Nodes::InnerJoin.new(aliased_subquery, constraint)
+      end
+
+      def outer_join
+        Arel::Nodes::OuterJoin.new(aliased_subquery, constraint)
       end
 
       def aliased_subquery
