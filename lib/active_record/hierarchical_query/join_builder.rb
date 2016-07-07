@@ -6,15 +6,21 @@ module ActiveRecord
       # @param [ActiveRecord::HierarchicalQuery::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
-      def initialize(query, join_to, subquery_alias)
+      def initialize(query, join_to, subquery_alias, join_options = {})
         @query = query
         @builder = CTE::QueryBuilder.new(query)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
+        @join_options = join_options
       end
 
       def build
-        relation = @relation.joins(inner_join.to_sql)
+        # outer joins to include non-hierarchical entries if specified
+        # default option when flag is not specified is to include only entries participating
+        # in a hierarchy
+        join_sql = @join_options[:outer_join_hierarchical].present? ? outer_join.to_sql : inner_join.to_sql
+        relation = @relation.joins(join_sql)
+
         # copy bound variables from inner subquery (remove duplicates)
         relation.bind_values |= bind_values
         # add ordering by "__order_column"
@@ -26,6 +32,10 @@ module ActiveRecord
       private
       def inner_join
         Arel::Nodes::InnerJoin.new(aliased_subquery, constraint)
+      end
+
+      def outer_join
+        Arel::Nodes::OuterJoin.new(aliased_subquery, constraint)
       end
 
       def aliased_subquery
@@ -48,8 +58,12 @@ module ActiveRecord
         @relation.table[@relation.klass.primary_key]
       end
 
+      def custom_foreign_key
+        @join_options[:foreign_key]
+      end
+
       def foreign_key
-        @alias[@query.klass.primary_key]
+        custom_foreign_key ? @alias[custom_foreign_key] : @alias[@query.klass.primary_key]
       end
 
       def bind_values
