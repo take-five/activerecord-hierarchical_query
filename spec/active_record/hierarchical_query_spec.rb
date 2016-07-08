@@ -214,20 +214,56 @@ describe ActiveRecord::HierarchicalQuery do
       end
     end
 
-    describe ':outer_join_hierarchical' do
-      it 'build an outer join' do
-        expect(
-          klass.join_recursive(outer_join_hierarchical: true) { connect_by(id: :parent_id) }.to_sql
-        ).to match /LEFT OUTER JOIN/
-      end
-    end
-
     describe ':foreign_key' do
       it 'uses described foreign_key when joining table to recursive view' do
         expect(
           klass.join_recursive(foreign_key: 'some_column') { connect_by(id: :parent_id) }.to_sql
         ).to match /categories\"\.\"id\" = \"categories__recursive\"\.\"some_column/
       end
+    end
+  end
+
+  describe ':outer_join_hierarchical' do
+    it 'build an outer join' do
+      expect(
+        klass.join_recursive(outer_join_hierarchical: true) { connect_by(id: :parent_id) }.to_sql
+      ).to match /LEFT OUTER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+    end
+
+    it 'negative options build an inner join' do
+      expect(
+        klass.join_recursive(outer_join_hierarchical: false) { connect_by(id: :parent_id) }.to_sql
+      ).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+
+      expect(
+        klass.join_recursive(outer_join_hierarchical: 'foo') { connect_by(id: :parent_id) }.to_sql
+      ).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+
+      expect(
+        klass.join_recursive { connect_by(id: :parent_id) }.to_sql
+      ).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+    end
+  end
+
+  describe ':distinct query option' do
+    it 'selects using a distinct option after joining table to recursive view' do
+      expect(
+        klass.join_recursive(distinct: true) { connect_by(id: :parent_id) }.to_sql
+      ).to match /SELECT DISTINCT \"categories__recursive\"/
+    end
+
+    it 'negative options do not select using a distinct' do
+      expect(
+        klass.join_recursive(distinct: false) { connect_by(id: :parent_id) }.to_sql
+      ).to match /SELECT \"categories__recursive\"/
+
+      expect(
+        klass.join_recursive(distinct: 'foo') { connect_by(id: :parent_id) }.to_sql
+      ).to match /SELECT \"categories__recursive\"/
+
+      expect(
+        klass.join_recursive { connect_by(id: :parent_id) }.to_sql
+      ).to match /SELECT \"categories__recursive\"/
     end
   end
 end
