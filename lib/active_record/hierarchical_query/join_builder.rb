@@ -6,19 +6,19 @@ module ActiveRecord
       # @param [ActiveRecord::HierarchicalQuery::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
-      def initialize(query, join_to, subquery_alias, join_options = {})
+      def initialize(query, join_to, subquery_alias, options = {})
         @query = query
-        @builder = CTE::QueryBuilder.new(query)
+        @builder = CTE::QueryBuilder.new(query, options)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
-        @join_options = join_options
+        @options = options
       end
 
       def build
         # outer joins to include non-hierarchical entries if specified
         # default option when flag is not specified is to include only entries participating
         # in a hierarchy
-        join_sql = @join_options[:outer_join_hierarchical].present? ? outer_join.to_sql : inner_join.to_sql
+        join_sql = @options[:outer_join_hierarchical] == true ? outer_join.to_sql : inner_join.to_sql
         relation = @relation.joins(join_sql)
 
         # copy bound variables from inner subquery (remove duplicates)
@@ -59,7 +59,7 @@ module ActiveRecord
       end
 
       def custom_foreign_key
-        @join_options[:foreign_key]
+        @options[:foreign_key]
       end
 
       def foreign_key

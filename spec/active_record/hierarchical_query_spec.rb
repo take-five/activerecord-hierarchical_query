@@ -214,19 +214,85 @@ describe ActiveRecord::HierarchicalQuery do
       end
     end
 
-    describe ':outer_join_hierarchical' do
-      it 'build an outer join' do
-        expect(
-          klass.join_recursive(outer_join_hierarchical: true) { connect_by(id: :parent_id) }.to_sql
-        ).to match /LEFT OUTER JOIN/
-      end
-    end
-
     describe ':foreign_key' do
       it 'uses described foreign_key when joining table to recursive view' do
         expect(
           klass.join_recursive(foreign_key: 'some_column') { connect_by(id: :parent_id) }.to_sql
         ).to match /categories\"\.\"id\" = \"categories__recursive\"\.\"some_column/
+      end
+    end
+
+    describe ':outer_join_hierarchical' do
+      subject { klass.join_recursive(outer_join_hierarchical: value) { connect_by(id: :parent_id) }.to_sql }
+
+      let(:value) { true }
+      let(:inner_join) {
+        /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+      }
+
+      it 'builds an outer join' do
+        expect(subject).to match /LEFT OUTER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+      end
+
+      context 'value is false' do
+        let(:value) { false }
+
+        it 'builds an inner join' do
+          expect(subject).to match inner_join
+        end
+      end
+
+      context 'value is a string' do
+        let(:value) { 'foo' }
+
+        it 'builds an inner join' do
+          expect(subject).to match inner_join
+        end
+      end
+
+      context 'key is absent' do
+        subject { klass.join_recursive { connect_by(id: :parent_id) }.to_sql }
+
+        it 'builds an inner join' do
+          expect(subject).to match inner_join
+        end
+      end
+    end
+  end
+
+  describe ':distinct query option' do
+    subject { klass.join_recursive(distinct: value) { connect_by(id: :parent_id) }.to_sql }
+
+    let(:value) { true }
+    let(:select) {
+      /SELECT \"categories__recursive\"/
+    }
+
+    it 'selects using a distinct option after joining table to recursive view' do
+      expect(subject).to match /SELECT DISTINCT \"categories__recursive\"/
+    end
+
+    context 'value is false' do
+      let(:value) { false }
+
+      it 'selects without using a distinct' do
+        expect(subject).to match select
+      end
+    end
+
+    context 'value is a string' do
+      let(:value) { 'foo' }
+
+      it 'selects without using a distinct' do
+        expect(subject).to match select
+      end
+    end
+
+    context 'key is absent' do
+      subject { klass.join_recursive { connect_by(id: :parent_id) }.to_sql }
+
+      it 'selects without using a distinct' do
+        expect(subject).to match select
       end
     end
   end

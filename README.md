@@ -297,7 +297,12 @@ ORDER BY "categories__recursive"."__order_column" ASC
 
 If you want to use a `LEFT OUTER JOIN` instead of an `INNER JOIN`, add a query option for `outer_join_hierarchical`.   This option allows the query to return non-hierarchical entries:
 ```ruby
-.join_recursive(outer_join_hierarchical: true)
+  .join_recursive(outer_join_hierarchical: true)
+```
+
+If you want to `SELECT DISTINCT` values, add a query option for  `distinct`
+```ruby
+  .join_recursive(distinct: true)
 ```
 
 If, when joining the recursive view to the main table, you want to change the foreign_key on the recursive view from the primary key of the main table to another column:
