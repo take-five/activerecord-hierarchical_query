@@ -226,6 +226,9 @@ describe ActiveRecord::HierarchicalQuery do
       subject { klass.join_recursive(outer_join_hierarchical: value) { connect_by(id: :parent_id) }.to_sql }
 
       let(:value) { true }
+      let(:inner_join) {
+        /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+      }
 
       it 'builds an outer join' do
         expect(subject).to match /LEFT OUTER JOIN \(WITH RECURSIVE \"categories__recursive\"/
@@ -235,7 +238,7 @@ describe ActiveRecord::HierarchicalQuery do
         let(:value) { false }
 
         it 'builds an inner join' do
-          expect(subject).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+          expect(subject).to match inner_join
         end
       end
 
@@ -243,7 +246,7 @@ describe ActiveRecord::HierarchicalQuery do
         let(:value) { 'foo' }
 
         it 'builds an inner join' do
-          expect(subject).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+          expect(subject).to match inner_join
         end
       end
 
@@ -251,7 +254,7 @@ describe ActiveRecord::HierarchicalQuery do
         subject { klass.join_recursive { connect_by(id: :parent_id) }.to_sql }
 
         it 'builds an inner join' do
-          expect(subject).to match /INNER JOIN \(WITH RECURSIVE \"categories__recursive\"/
+          expect(subject).to match inner_join
         end
       end
     end
@@ -261,6 +264,9 @@ describe ActiveRecord::HierarchicalQuery do
     subject { klass.join_recursive(distinct: value) { connect_by(id: :parent_id) }.to_sql }
 
     let(:value) { true }
+    let(:select) {
+      /SELECT \"categories__recursive\"/
+    }
 
     it 'selects using a distinct option after joining table to recursive view' do
       expect(subject).to match /SELECT DISTINCT \"categories__recursive\"/
@@ -270,7 +276,7 @@ describe ActiveRecord::HierarchicalQuery do
       let(:value) { false }
 
       it 'selects without using a distinct' do
-        expect(subject).to match /SELECT \"categories__recursive\"/
+        expect(subject).to match select
       end
     end
 
@@ -278,7 +284,7 @@ describe ActiveRecord::HierarchicalQuery do
       let(:value) { 'foo' }
 
       it 'selects without using a distinct' do
-        expect(subject).to match /SELECT \"categories__recursive\"/
+        expect(subject).to match select
       end
     end
 
@@ -286,7 +292,7 @@ describe ActiveRecord::HierarchicalQuery do
       subject { klass.join_recursive { connect_by(id: :parent_id) }.to_sql }
 
       it 'selects without using a distinct' do
-        expect(subject).to match /SELECT \"categories__recursive\"/
+        expect(subject).to match select
       end
     end
   end
