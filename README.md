@@ -244,6 +244,17 @@ Category.join_recursive do |query|
 end
 ```
 
+## DISTINCT
+By default, the union term in the Common Table Expression uses a `UNION ALL`. If you want
+to `SELECT DISTINCT` CTE values, add a query option for  `distinct`
+```ruby
+Category.join_recursive do |query|
+  query.connect_by(id: :parent_id)
+       .start_with(id: node_1.id)
+       .distinct
+end
+```
+
 ## Generated SQL queries
 
 Under the hood this extensions builds `INNER JOIN` to recursive subquery.
@@ -298,11 +309,6 @@ ORDER BY "categories__recursive"."__order_column" ASC
 If you want to use a `LEFT OUTER JOIN` instead of an `INNER JOIN`, add a query option for `outer_join_hierarchical`.   This option allows the query to return non-hierarchical entries:
 ```ruby
   .join_recursive(outer_join_hierarchical: true)
-```
-
-If you want to `SELECT DISTINCT` values, add a query option for  `distinct`
-```ruby
-  .join_recursive(distinct: true)
 ```
 
 If, when joining the recursive view to the main table, you want to change the foreign_key on the recursive view from the primary key of the main table to another column:

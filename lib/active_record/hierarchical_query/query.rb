@@ -20,7 +20,8 @@ module ActiveRecord
                   :limit_value,
                   :offset_value,
                   :order_values,
-                  :nocycle_value
+                  :nocycle_value,
+                  :distinct_value
 
       # @api private
       CHILD_SCOPE_METHODS = :where, :joins, :group, :having, :bind
@@ -36,6 +37,7 @@ module ActiveRecord
         @offset_value = nil
         @nocycle_value = false
         @order_values = []
+        @distinct_value = false
       end
 
       # Specify root scope of the hierarchy.
@@ -268,6 +270,14 @@ module ActiveRecord
       #   end
       def table
         @klass.arel_table
+      end
+
+      # Turn on select distinct option in the CTE.
+      #
+      # @return [ActiveRecord::HierarchicalQuery::Query] self
+      def distinct
+        @distinct_value = true
+        self
       end
 
       # @return [Arel::Nodes::Node]
