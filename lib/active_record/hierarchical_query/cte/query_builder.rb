@@ -58,7 +58,11 @@ module ActiveRecord
         end
 
         def build_select
-          @arel.project(recursive_table[Arel.star])
+          if @query.distinct_value == true
+            @arel.project(recursive_table[Arel.star]).distinct
+          else
+            @arel.project(recursive_table[Arel.star])
+          end
         end
 
         def build_limits
