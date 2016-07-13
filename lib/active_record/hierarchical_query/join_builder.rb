@@ -8,7 +8,7 @@ module ActiveRecord
       # @param [#to_s] subquery_alias
       def initialize(query, join_to, subquery_alias, options = {})
         @query = query
-        @builder = CTE::QueryBuilder.new(query, options)
+        @builder = CTE::QueryBuilder.new(query)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
         @options = options
@@ -19,6 +19,7 @@ module ActiveRecord
         # default option when flag is not specified is to include only entries participating
         # in a hierarchy
         join_sql = @options[:outer_join_hierarchical] == true ? outer_join.to_sql : inner_join.to_sql
+
         relation = @relation.joins(join_sql)
 
         # copy bound variables from inner subquery (remove duplicates)

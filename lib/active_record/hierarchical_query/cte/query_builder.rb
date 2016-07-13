@@ -11,17 +11,15 @@ module ActiveRecord
       class QueryBuilder
         attr_reader :query,
                     :columns,
-                    :cycle_detector,
-                    :options
+                    :cycle_detector
 
         delegate :klass, :table, :recursive_table, to: :query
 
         # @param [ActiveRecord::HierarchicalQuery::Query] query
-        def initialize(query, options = {})
+        def initialize(query)
           @query = query
           @columns = Columns.new(@query)
           @cycle_detector = CycleDetector.new(@query)
-          @options = options
         end
 
         def bind_values
@@ -60,7 +58,7 @@ module ActiveRecord
         end
 
         def build_select
-          if @options[:distinct] == true
+          if @query.distinct_value == true
             @arel.project(recursive_table[Arel.star]).distinct
           else
             @arel.project(recursive_table[Arel.star])

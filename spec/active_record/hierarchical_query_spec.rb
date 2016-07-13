@@ -260,10 +260,9 @@ describe ActiveRecord::HierarchicalQuery do
     end
   end
 
-  describe ':distinct query option' do
-    subject { klass.join_recursive(distinct: value) { connect_by(id: :parent_id) }.to_sql }
+  describe ':distinct query method' do
+    subject { klass.join_recursive { connect_by(id: :parent_id).distinct }.to_sql }
 
-    let(:value) { true }
     let(:select) {
       /SELECT \"categories__recursive\"/
     }
@@ -272,23 +271,7 @@ describe ActiveRecord::HierarchicalQuery do
       expect(subject).to match /SELECT DISTINCT \"categories__recursive\"/
     end
 
-    context 'value is false' do
-      let(:value) { false }
-
-      it 'selects without using a distinct' do
-        expect(subject).to match select
-      end
-    end
-
-    context 'value is a string' do
-      let(:value) { 'foo' }
-
-      it 'selects without using a distinct' do
-        expect(subject).to match select
-      end
-    end
-
-    context 'key is absent' do
+    context 'distinct method is absent' do
       subject { klass.join_recursive { connect_by(id: :parent_id) }.to_sql }
 
       it 'selects without using a distinct' do
