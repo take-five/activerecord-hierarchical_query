@@ -249,9 +249,9 @@ By default, the union term in the Common Table Expression uses a `UNION ALL`. If
 to `SELECT DISTINCT` CTE values, add a query option for  `distinct`
 ```ruby
 Category.join_recursive do |query|
-query.connect_by(id: :parent_id)
-     .start_with(id: node_1.id)
-     .distinct
+  query.connect_by(id: :parent_id)
+       .start_with(id: node_1.id)
+       .distinct
 end
 ```
 

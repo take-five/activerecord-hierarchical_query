@@ -272,12 +272,11 @@ module ActiveRecord
         @klass.arel_table
       end
 
-      # Turn on/off select distinct option in the CTE.
+      # Turn on select distinct option in the CTE.
       #
-      # @param [true, false] value
       # @return [ActiveRecord::HierarchicalQuery::Query] self
-      def distinct(value = true)
-        @distinct_value = value
+      def distinct
+        @distinct_value = true
         self
       end
 
