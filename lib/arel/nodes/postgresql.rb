@@ -13,6 +13,9 @@ module Arel
 
     class ArrayConcat < Binary
     end
+
+    class UnionDistinct < Binary
+    end
   end
 
   module Visitors
@@ -42,6 +45,11 @@ module Arel
           collector << ARRAY_CONCAT
           visit o.right, collector
         end
+      end
+
+      def visit_Arel_Nodes_UnionDistinct o, collector
+        collector << "( "
+        infix_value(o, collector, " UNION DISTINCT ") << " )"
       end
     end
   end
