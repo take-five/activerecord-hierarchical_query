@@ -15,10 +15,17 @@ module ActiveRecord
         end
 
         def arel
-          non_recursive_term.arel.union(:all, recursive_term.arel)
+          non_recursive_term.arel.union(union_type, recursive_term.arel)
         end
 
         private
+
+        def union_type
+          return @builder.options[:union_type] if @builder.options[:union_type].present?
+
+          :all
+        end
+
         def recursive_term
           @rt ||= RecursiveTerm.new(@builder)
         end
