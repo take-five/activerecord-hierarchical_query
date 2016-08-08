@@ -31,7 +31,7 @@ describe ActiveRecord::HierarchicalQuery do
       context 'specifying ALL union type' do
         let(:options) { { union_type: :all } }
 
-        it 'uses UNION DISTINCT' do
+        it 'uses UNION ALL' do
           expect(subject).to include('UNION ALL')
           expect(subject).to_not include('UNION DISTINCT')
         end

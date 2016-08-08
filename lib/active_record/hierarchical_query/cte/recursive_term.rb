@@ -25,7 +25,11 @@ module ActiveRecord
 
         private
         def scope
-          @scope ||= query.child_scope_value.select(columns)
+          @scope ||= if builder.options.key?(:seed_recursive_query) && builder.options[:seed_recursive_query] == true
+            query.start_with_value.select(columns)
+          else
+            query.child_scope_value.select(columns)
+          end
         end
 
         def columns
