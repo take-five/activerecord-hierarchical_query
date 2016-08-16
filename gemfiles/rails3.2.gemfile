@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-gem "pg", "~> 0.17.1"
+gem "pg", "~> 0.18.3"
 gem "activerecord", "~> 3.2.0"
 
 group :local do
