@@ -33,6 +33,10 @@ module Arel
         def visit_Arel_Nodes_ArrayConcat o, *a
           "#{visit o.left, *a} #{ARRAY_CONCAT} #{visit o.right, *a}"
         end
+
+        def visit_Arel_Nodes_UnionDistinct o, *a
+          "( #{visit o.left, *a} UNION DISTINCT #{visit o.right, *a} )"
+        end
       else
         def visit_Arel_Nodes_PostgresArray o, collector
           collector << ARRAY_OPENING
@@ -45,11 +49,11 @@ module Arel
           collector << ARRAY_CONCAT
           visit o.right, collector
         end
-      end
 
-      def visit_Arel_Nodes_UnionDistinct o, collector
-        collector << "( "
-        infix_value(o, collector, " UNION DISTINCT ") << " )"
+        def visit_Arel_Nodes_UnionDistinct o, collector
+          collector << "( "
+          infix_value(o, collector, " UNION DISTINCT ") << " )"
+        end
       end
     end
   end
