@@ -99,10 +99,10 @@ module ActiveRecord
           object = @start_with_value || @klass
 
           @start_with_value = if block.arity == 0
-                                object.instance_eval(&block)
-                              else
-                                block.call(object)
-                              end
+            object.instance_eval(&block)
+          else
+            block.call(object)
+          end
         end
 
         self

@@ -11,6 +11,33 @@ describe ActiveRecord::HierarchicalQuery do
   let!(:child_5) { klass.create(parent: child_4) }
 
   describe '#join_recursive' do
+    describe 'UNION clause' do
+      let(:options) { {} }
+      subject { klass.join_recursive(options) { connect_by(id: :parent_id) }.to_sql }
+
+      it 'defaults to UNION ALL' do
+        expect(subject).to include('UNION ALL')
+      end
+
+      context 'specifying DISTINCT union type' do
+        let(:options) { { union_type: :distinct } }
+
+        it 'uses UNION DISTINCT' do
+          expect(subject).to include('UNION DISTINCT')
+          expect(subject).to_not include('UNION ALL')
+        end
+      end
+
+      context 'specifying ALL union type' do
+        let(:options) { { union_type: :all } }
+
+        it 'uses UNION ALL' do
+          expect(subject).to include('UNION ALL')
+          expect(subject).to_not include('UNION DISTINCT')
+        end
+      end
+    end
+
     describe 'CONNECT BY clause' do
       it 'throws error if CONNECT BY clause not specified' do
         expect {

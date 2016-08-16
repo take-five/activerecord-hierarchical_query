@@ -8,7 +8,7 @@ module ActiveRecord
       # @param [#to_s] subquery_alias
       def initialize(query, join_to, subquery_alias, options = {})
         @query = query
-        @builder = CTE::QueryBuilder.new(query)
+        @builder = CTE::QueryBuilder.new(query, options: options)
         @relation = join_to
         @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
         @options = options
