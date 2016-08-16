@@ -246,12 +246,20 @@ end
 
 ## DISTINCT
 By default, the union term in the Common Table Expression uses a `UNION ALL`. If you want
-to `SELECT DISTINCT` CTE values, add a query option for  `distinct`
+to `SELECT DISTINCT` CTE values, add a query option for  `distinct`:
 ```ruby
 Category.join_recursive do |query|
   query.connect_by(id: :parent_id)
        .start_with(id: node_1.id)
        .distinct
+end
+```
+
+If you want to join CTE terms by `UNION DISTINCT`, pass an option to `join_recursive`:
+```ruby
+Category.join_recursive(union_type: :distinct) do |query|
+  query.connect_by(id: :parent_id)
+       .start_with(id: node_1.id)
 end
 ```
 
