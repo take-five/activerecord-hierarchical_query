@@ -1,5 +1,4 @@
 pg:
   adapter: postgresql
   database: hierarchical_query_test
-  username: vagrant
   min_messages: ERROR
