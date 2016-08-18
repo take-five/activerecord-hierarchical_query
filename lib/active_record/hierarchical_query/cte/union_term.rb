@@ -6,8 +6,9 @@ module ActiveRecord
     module CTE
       class UnionTerm
         # @param [ActiveRecord::HierarchicalQuery::CTE::QueryBuilder] builder
-        def initialize(builder)
+        def initialize(builder, options = {})
           @builder = builder
+          @union_type = options.fetch(:union_type, :all)
         end
 
         def bind_values
@@ -19,12 +20,7 @@ module ActiveRecord
         end
 
         private
-
-        def union_type
-          return @builder.options[:union_type] if @builder.options[:union_type].present?
-
-          :all
-        end
+        attr_reader :union_type
 
         def recursive_term
           @rt ||= RecursiveTerm.new(@builder)

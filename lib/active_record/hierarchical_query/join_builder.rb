@@ -6,6 +6,7 @@ module ActiveRecord
       # @param [ActiveRecord::HierarchicalQuery::Query] query
       # @param [ActiveRecord::Relation] join_to
       # @param [#to_s] subquery_alias
+      # @param [Hash] options (:outer_join_hierarchical, :union_type)
       def initialize(query, join_to, subquery_alias, options = {})
         @query = query
         @builder = CTE::QueryBuilder.new(query, options: options)
@@ -15,13 +16,7 @@ module ActiveRecord
       end
 
       def build
-        # outer joins to include non-hierarchical entries if specified
-        # default option when flag is not specified is to include only entries participating
-        # in a hierarchy
-        join_sql = @options[:outer_join_hierarchical] == true ? outer_join.to_sql : inner_join.to_sql
-
-        relation = @relation.joins(join_sql)
-
+        relation = @relation.joins(joined_arel_node)
         # copy bound variables from inner subquery (remove duplicates)
         relation.bind_values |= bind_values
         # add ordering by "__order_column"
@@ -31,6 +26,10 @@ module ActiveRecord
       end
 
       private
+      def joined_arel_node
+        @options[:outer_join_hierarchical] == true ? outer_join : inner_join
+      end
+
       def inner_join
         Arel::Nodes::InnerJoin.new(aliased_subquery, constraint)
       end
@@ -40,7 +39,7 @@ module ActiveRecord
       end
 
       def aliased_subquery
-        Arel::Nodes::As.new(subquery, @alias)
+        SubqueryAlias.new(subquery, @alias)
       end
 
       def subquery
@@ -77,6 +76,16 @@ module ActiveRecord
 
       def order_columns
         [@query.recursive_table[@query.ordering_column_name].asc]
+      end
+
+      # This node is required to support joins to aliased Arel nodes
+      class SubqueryAlias < Arel::Nodes::As
+        attr_reader :table_name
+
+        def initialize(subquery, alias_node)
+          super
+          @table_name = alias_node.name
+        end
       end
     end
   end

@@ -16,6 +16,7 @@ class Category < ActiveRecord::Base
 
   belongs_to :parent, class_name: 'Category'
   has_many :children, class_name: 'Category'
+  has_many :articles
 
   before_save :generate_name, unless: :name?
   before_save :count_depth
@@ -36,4 +37,8 @@ class Category < ActiveRecord::Base
   def ancestors
     parent ? parent.ancestors + [parent] : []
   end
+end
+
+class Article < ActiveRecord::Base
+  belongs_to :category
 end

@@ -56,11 +56,11 @@ module ActiveRecord
         end
 
         def union_term
-          @union_term ||= UnionTerm.new(self)
+          @union_term ||= UnionTerm.new(self, @options)
         end
 
         def build_select
-          if @query.distinct_value == true
+          if @query.distinct_value
             @arel.project(recursive_table[Arel.star]).distinct
           else
             @arel.project(recursive_table[Arel.star])

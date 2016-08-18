@@ -306,4 +306,26 @@ describe ActiveRecord::HierarchicalQuery do
       end
     end
   end
+
+  describe 'Testing bind variables' do
+    let!(:article) { Article.create!(category: child_2, title: 'Alpha') }
+
+    let(:subquery) do
+      klass.join_recursive do |query|
+        query.
+          start_with(parent_id: child_1.id).
+          connect_by(id: :parent_id)
+      end
+    end
+
+    let(:outer_query) do
+      Article.where(category_id: subquery, title: 'Alpha')
+    end
+
+    subject(:result) { outer_query.to_a }
+
+    it 'returns result without throwing an error' do
+      expect(result).to include(article)
+    end
+  end
 end
