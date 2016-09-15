@@ -101,7 +101,12 @@ module ActiveRecord
         table = order_attribute.relation
 
         if table.engine == ActiveRecord::Base
-          columns = table.engine.connection_pool.columns_hash[table.name]
+          columns =
+            if table.engine.connection.respond_to?(:schema_cache)
+              table.engine.connection.schema_cache.columns_hash(table.name)
+            else
+              table.engine.connection_pool.columns_hash[table.name]
+            end
         else
           columns = table.engine.columns_hash
         end

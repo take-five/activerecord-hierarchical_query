@@ -253,7 +253,7 @@ module ActiveRecord
       #
       # @return [Arel::Table]
       def prior
-        @recursive_table ||= Arel::Table.new("#{table.name}__recursive")
+        @recursive_table ||= Arel::Table.new("#{normalized_table_name}__recursive")
       end
       alias_method :previous, :prior
       alias_method :recursive_table, :prior
@@ -308,7 +308,7 @@ module ActiveRecord
         raise 'Recursive query requires CONNECT BY clause, please use #connect_by method' unless
             connect_by_value
 
-        table_alias = join_options.fetch(:as, "#{table.name}__recursive")
+        table_alias = join_options.fetch(:as, "#{normalized_table_name}__recursive")
 
         JoinBuilder.new(self, relation, table_alias, join_options).build
       end
@@ -324,6 +324,10 @@ module ActiveRecord
             Arel::Nodes::Equality.new(parent_expression, child_expression)
           end.reduce(:and)
         end
+      end
+
+      def normalized_table_name
+        table.name.gsub('.', '_')
       end
     end # class Builder
   end # module HierarchicalQuery
