@@ -17,8 +17,8 @@ module ActiveRecord
 
       def build
         relation = @relation.joins(joined_arel_node)
-        # copy bound variables from inner subquery (remove duplicates)
-        relation.bind_values |= bind_values
+        # copy bound variables from inner subquery
+        relation.bind_values += bind_values
         # add ordering by "__order_column"
         relation.order_values += order_columns if ordered?
 

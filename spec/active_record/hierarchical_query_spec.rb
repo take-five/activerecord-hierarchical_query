@@ -3,12 +3,13 @@ require 'spec_helper'
 describe ActiveRecord::HierarchicalQuery do
   let(:klass) { Category }
 
-  let!(:root) { klass.create }
-  let!(:child_1) { klass.create(parent: root) }
-  let!(:child_2) { klass.create(parent: child_1) }
-  let!(:child_3) { klass.create(parent: child_1) }
-  let!(:child_4) { klass.create(parent: root) }
-  let!(:child_5) { klass.create(parent: child_4) }
+  let(:trait_id) { 'trait' }
+  let!(:root) { klass.create(trait_id: trait_id) }
+  let!(:child_1) { klass.create(parent: root, trait_id: trait_id) }
+  let!(:child_2) { klass.create(parent: child_1, trait_id: trait_id) }
+  let!(:child_3) { klass.create(parent: child_1, trait_id: trait_id) }
+  let!(:child_4) { klass.create(parent: root, trait_id: trait_id) }
+  let!(:child_5) { klass.create(parent: child_4, trait_id: trait_id) }
 
   describe '#join_recursive' do
     describe 'UNION clause' do
@@ -313,8 +314,9 @@ describe ActiveRecord::HierarchicalQuery do
     let(:subquery) do
       klass.join_recursive do |query|
         query.
-          start_with(parent_id: child_1.id).
-          connect_by(id: :parent_id)
+          start_with(trait_id: trait_id, parent_id: child_1.id).
+          connect_by(id: :parent_id).
+          where(trait_id: trait_id)
       end
     end
 
