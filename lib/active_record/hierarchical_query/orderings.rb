@@ -100,7 +100,7 @@ module ActiveRecord
       def order_column
         table = order_attribute.relation
 
-        if table.engine == ActiveRecord::Base
+        if Arel::Tabel.engine == ActiveRecord::Base
           columns =
             if table.engine.connection.respond_to?(:schema_cache)
               table.engine.connection.schema_cache.columns_hash(table.name)
