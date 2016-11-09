@@ -219,6 +219,25 @@ describe ActiveRecord::HierarchicalQuery do
       end
     end
 
+    context "with a model with a default order" do
+      let!(:root) { LinkedItem.create(name: 'Root') }
+      let!(:child_1) { LinkedItem.create(parent: root, name: 'Child 1') }
+      let!(:child_2) { LinkedItem.create(parent: child_1, name: 'Child 2') }
+      let!(:child_3) { LinkedItem.create(parent: child_1, name: 'Child 3') }
+      let!(:child_4) { LinkedItem.create(parent: root, name: 'Child 4') }
+      let!(:child_5) { LinkedItem.create(parent: child_4, name: 'Child 5') }
+
+      it "can use join_recursive despite the default order" do
+        parents =
+        expect(
+            LinkedItem.join_recursive do |query|
+              query.start_with(id: child_2.parent_id)
+                  .connect_by(parent_id: :id).reorder(nil)
+            end
+        ).to match_array([root, child_1])
+      end
+    end
+
     describe 'binding values' do
       it 'binds values' do
         expect(

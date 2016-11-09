@@ -24,7 +24,7 @@ module ActiveRecord
                   :distinct_value
 
       # @api private
-      CHILD_SCOPE_METHODS = :where, :joins, :group, :having, :bind
+      CHILD_SCOPE_METHODS = :where, :joins, :group, :having, :bind, :reorder
 
       def initialize(klass)
         @klass = klass
@@ -179,6 +179,7 @@ module ActiveRecord
       # @!method group(*values)
       # @!method having(*conditions)
       # @!method bind(value)
+      # @!method reorder(value)
       CHILD_SCOPE_METHODS.each do |method|
         define_method(method) do |*args|
           @child_scope_value = @child_scope_value.public_send(method, *args)
