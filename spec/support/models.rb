@@ -42,3 +42,9 @@ end
 class Article < ActiveRecord::Base
   belongs_to :category
 end
+
+class LinkedItem < ActiveRecord::Base
+  belongs_to :parent, class_name: 'LinkedItem', foreign_key: :parent_id
+
+  default_scope -> { order('name ASC') }
+end
