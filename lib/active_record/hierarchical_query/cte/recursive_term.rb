@@ -25,7 +25,7 @@ module ActiveRecord
 
         private
         def scope
-          @scope ||= query.child_scope_value.select(columns)
+          @scope ||= query.child_scope_value.select(columns).reorder(nil)
         end
 
         def columns

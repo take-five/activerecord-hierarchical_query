@@ -29,7 +29,8 @@ module ActiveRecord
           @scope ||= query.
               start_with_value.
               select(columns).
-              except(*DISALLOWED_CLAUSES)
+              except(*DISALLOWED_CLAUSES).
+              reorder(nil)
         end
 
         def columns
