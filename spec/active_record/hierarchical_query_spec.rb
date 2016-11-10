@@ -330,4 +330,22 @@ describe ActiveRecord::HierarchicalQuery do
       expect(result).to include(article)
     end
   end
+
+  describe 'Models with default scope' do
+    let!(:scoped_root) { ModelWithDefaultScope.create!(name: '9. Root') }
+    let!(:scoped_child_1) { ModelWithDefaultScope.create!(name: '8. Child', parent: scoped_root) }
+    let!(:scoped_child_2) { ModelWithDefaultScope.create!(name: '7. Child', parent: scoped_root) }
+
+    subject(:result) {
+      ModelWithDefaultScope.join_recursive do |query|
+        query
+          .connect_by(id: :parent_id)
+          .start_with(id: scoped_root.id)
+      end
+    }
+
+    it 'applies default scope to outer query without affecting recursive terms' do
+      expect(result).to eq [scoped_child_2, scoped_child_1, scoped_root]
+    end
+  end
 end

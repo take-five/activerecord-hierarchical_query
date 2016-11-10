@@ -13,4 +13,9 @@ ActiveRecord::Schema.define(version: 0) do
     t.column :category_id, :integer
     t.column :title, :string
   end
+
+  create_table :model_with_default_scopes, force: true do |t|
+    t.column :parent_id, :integer
+    t.column :name, :string
+  end
 end

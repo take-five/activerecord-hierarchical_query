@@ -42,3 +42,9 @@ end
 class Article < ActiveRecord::Base
   belongs_to :category
 end
+
+class ModelWithDefaultScope < ActiveRecord::Base
+  belongs_to :parent, class_name: 'ModelWithDefaultScope'
+
+  default_scope -> { order('name ASC') }
+end
