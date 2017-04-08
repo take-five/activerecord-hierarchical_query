@@ -100,15 +100,16 @@ module ActiveRecord
       def order_column
         table = order_attribute.relation
 
-        if table.engine == ActiveRecord::Base
+        engine = table.class.engine
+        if engine == ActiveRecord::Base
           columns =
-            if table.engine.connection.respond_to?(:schema_cache)
-              table.engine.connection.schema_cache.columns_hash(table.name)
+            if engine.connection.respond_to?(:schema_cache)
+              engine.connection.schema_cache.columns_hash(table.name)
             else
-              table.engine.connection_pool.columns_hash[table.name]
+              engine.connection_pool.columns_hash[table.name]
             end
         else
-          columns = table.engine.columns_hash
+          columns = engine.columns_hash
         end
 
         columns[order_attribute.name.to_s]
