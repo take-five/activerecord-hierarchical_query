@@ -21,10 +21,12 @@ module ActiveRecord
         # add ordering by "__order_column"
         relation.order_values += order_columns if ordered?
 
+        relation = relation.joins(joined_arel_node)
+
         # copy bound variables from inner subquery
         relation.bind_values += bind_values
 
-        relation.joins(joined_arel_node)
+        relation
       end
 
       private
