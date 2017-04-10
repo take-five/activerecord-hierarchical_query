@@ -218,19 +218,6 @@ describe ActiveRecord::HierarchicalQuery do
         ).to match_array [child_4, child_5]
       end
     end
-
-    describe 'binding values' do
-      it 'binds values' do
-        expect(
-            klass.join_recursive do |query|
-              query.start_with('id = $1')
-                   .connect_by(id: :parent_id)
-                   .where(nil)
-                   .bind([nil, child_4.id])
-            end
-        ).to match_array([child_4, child_5])
-      end
-    end
   end
 
   describe '#join_recursive options' do

@@ -11,16 +11,20 @@ module ActiveRecord
         @query = query
         @builder = CTE::QueryBuilder.new(query, options: options)
         @relation = join_to
-        @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
+        @alias = Arel::Table.new(subquery_alias)
         @options = options
       end
 
       def build
-        relation = @relation.joins(joined_arel_node)
-        # copy bound variables from inner subquery
-        relation.bind_values += bind_values
+        relation = @relation
+
         # add ordering by "__order_column"
         relation.order_values += order_columns if ordered?
+
+        relation = relation.joins(joined_arel_node)
+
+        # copy bound variables from inner subquery
+        relation.bind_values += bind_values
 
         relation
       end

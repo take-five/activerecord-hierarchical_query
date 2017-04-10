@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         def bind_values
-          scope.bind_values
+          scope.bound_attributes
         end
 
         def arel
