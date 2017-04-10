@@ -4,11 +4,7 @@ rvm:
   - 2.1.2
   - 2.2
 gemfile:
-  - gemfiles/rails3.1.gemfile
-  - gemfiles/rails3.2.gemfile
-  - gemfiles/rails4.0.gemfile
-  - gemfiles/rails4.1.gemfile
-  - gemfiles/rails4.2.gemfile
+  - gemfiles/rails5.0.gemfile
 before_install: gem install bundler
 bundler_args: ""
 before_script:
