@@ -11,7 +11,7 @@ module ActiveRecord
         @query = query
         @builder = CTE::QueryBuilder.new(query, options: options)
         @relation = join_to
-        @alias = Arel::Table.new(subquery_alias, ActiveRecord::Base)
+        @alias = Arel::Table.new(subquery_alias)
         @options = options
       end
 

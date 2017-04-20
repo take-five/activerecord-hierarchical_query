@@ -40,7 +40,7 @@ module ActiveRecord
 
         private
         def build_manager
-          @arel = Arel::SelectManager.new(table.engine).
+          @arel = Arel::SelectManager.new(Arel::Table.engine).
               with(:recursive, with_query).
               from(recursive_table)
         end
