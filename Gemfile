@@ -3,8 +3,8 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in activerecord-hierarchical_query.gemspec
 gemspec
 
-gem 'pg', '~> 0.18.3'
-gem 'activerecord', '~> 5.0.2'
+gem 'pg', '~> 0.21.0'
+gem 'activerecord', '~> 5.1.1'
 
 group :local do
   gem 'yard'
@@ -14,5 +14,5 @@ group :local do
 end
 
 group :travis do
-  gem 'coveralls'
+  gem 'coveralls', '~> 0.8.21'
 end
