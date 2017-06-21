@@ -65,8 +65,18 @@ crumbs = records.pluck(:name).join(' / ')
 
 ## Requirements
 
-* ActiveRecord >= 3.1.0 (Rails 5.0 not supported yet)
+* ActiveRecord >= 3.1.0
 * PostgreSQL >= 8.4
+
+## Rails 5
+
+Rails 5 is supported on the `rails-5` branch and through gem versions
+`>= 1.0.0` on rubygems.org. The Rails branch is intended to
+follow minor Rails releases (currently 5.1), but it should be
+compatible with 5.0 as well. If you have trouble try upgrading Rails
+first. Tag @zachaysan with in a GitHub issue if the latest version
+of Rails is not supported or if there are reproducable problems on
+the latest minor version of Rails 5.
 
 ## Installation
 
