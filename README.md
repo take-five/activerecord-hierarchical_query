@@ -65,8 +65,12 @@ crumbs = records.pluck(:name).join(' / ')
 
 ## Requirements
 
-* ActiveRecord >= 3.1.0 (Rails 5.0 not supported yet)
+* ActiveRecord >= 3.1.0
 * PostgreSQL >= 8.4
+
+## Rails 5
+
+Rails 5 is supported on the `rails-5` branch and through gem versions `>= 1.0.0` on rubygems.org
 
 ## Installation
 
