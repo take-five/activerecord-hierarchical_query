@@ -1,9 +1,3 @@
-# LOOKING FOR MAINTAINER
-
-I'm sorry but I can't maintain this project anymore.
-
-If you want to maintain this project, contact me (amikhailov83[at]gmail.com) and I will grant you all necessary permissions.
-
 # ActiveRecord::HierarchicalQuery
 
 [![Build Status](https://travis-ci.org/take-five/activerecord-hierarchical_query.png?branch=master)](https://travis-ci.org/take-five/activerecord-hierarchical_query)
