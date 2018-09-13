@@ -13,7 +13,7 @@ in hierarchical order using hierarchical query builder.
 
 ## Requirements
 
-* ActiveRecord >= 5.0, < 5.3
+* ActiveRecord ~> 5.2
 * PostgreSQL >= 8.4
 
 Note that though PostgresSQL 8.4 and up should work, this library
@@ -29,8 +29,8 @@ Rails 6 comes out.
 
 Rails 5 is supported on the `rails-5` branch and through gem
 versions `>= 1.0.0` on rubygems.org. This branch will soon
-replace master. If you have trouble with Rails 5.1 or 5.0, try
-upgrading Rails to 5.2.
+replace master. If you have trouble with Rails 5.1 or 5.0,
+upgrade to Rails 5.2 and install the latest version.
 
 Now that @zachaysan is the new primary maintainer of this
 project, support for laggard versions of Rails is going to be
