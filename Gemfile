@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'pg', '~> 0.21'
-gem 'activerecord', '>= 5.0', '< 5.3'
+gem 'activerecord', '~> 5.2'
 
 group :local do
   gem 'yard'
