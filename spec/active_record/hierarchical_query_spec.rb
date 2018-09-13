@@ -59,6 +59,18 @@ describe ActiveRecord::HierarchicalQuery do
           end
         ).to include root, child_1, child_2, child_3, child_4, child_5
       end
+
+      it 'handles Arel::Nodes::As name delegation' do
+        expected_array = \
+        klass.join_recursive do
+          connect_by { |parent, child| parent[:id].eq child[:parent_id] }
+        end
+
+        expect(
+          child_5.alias_node_query
+        ).to match_array expected_array
+      end
+
     end
 
     describe 'START WITH clause' do

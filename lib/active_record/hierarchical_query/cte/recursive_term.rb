@@ -13,7 +13,7 @@ module ActiveRecord
         end
 
         def bind_values
-          scope.bound_attributes
+          scope.values || {}
         end
 
         def arel

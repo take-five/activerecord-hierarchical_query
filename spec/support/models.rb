@@ -37,6 +37,16 @@ class Category < ActiveRecord::Base
   def ancestors
     parent ? parent.ancestors + [parent] : []
   end
+
+  # Arel::Nodes::As delegates name to the left relation
+  def alias_node_query
+    Category.left_outer_joins(:articles)
+      .join_recursive do |query|
+      query
+        .connect_by(id: :parent_id)
+    end
+  end
+
 end
 
 class Article < ActiveRecord::Base

@@ -21,15 +21,11 @@ module ActiveRecord
         # add ordering by "__order_column"
         relation.order_values += order_columns if ordered?
 
-        relation = relation.joins(joined_arel_node)
-
-        # copy bound variables from inner subquery
-        relation.bind_values += bind_values
-
-        relation
+        relation.joins(joined_arel_node)
       end
 
       private
+
       def joined_arel_node
         @options[:outer_join_hierarchical] == true ? outer_join : inner_join
       end
@@ -70,10 +66,6 @@ module ActiveRecord
         custom_foreign_key ? @alias[custom_foreign_key] : @alias[@query.klass.primary_key]
       end
 
-      def bind_values
-        @builder.bind_values
-      end
-
       def ordered?
         @query.orderings.any?
       end
@@ -84,12 +76,29 @@ module ActiveRecord
 
       # This node is required to support joins to aliased Arel nodes
       class SubqueryAlias < Arel::Nodes::As
+
         attr_reader :table_name
+
+        unless method_defined? :name
+          alias_method :name, :table_name
+        end
 
         def initialize(subquery, alias_node)
           super
-          @table_name = alias_node.name
+
+          @table_name = alias_node.try :name
+
+          return unless alias_node.respond_to? :left
+
+          aliased_name = alias_node.left.relation.name
+          return if @table_name == aliased_name
+
+          # Defensive coding; this shouldn't happen unless the
+          # Rails team does a change to how Arel works.
+          message = "Unexpected alias name mismatch"
+          raise RuntimeError, message
         end
+
       end
     end
   end

@@ -12,7 +12,9 @@ module ActiveRecord
         end
 
         def bind_values
-          non_recursive_term.bind_values + recursive_term.bind_values
+          non_recursive_term
+            .bind_values
+            .merge recursive_term.bind_values
         end
 
         def arel
