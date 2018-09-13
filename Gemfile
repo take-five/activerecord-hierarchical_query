@@ -4,6 +4,8 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'pg', '~> 0.21'
+
+# Update Travis if needed
 gem 'activerecord', '~> 5.2'
 
 group :local do
