@@ -3,12 +3,42 @@
 [![Build Status](https://travis-ci.org/take-five/activerecord-hierarchical_query.png?branch=master)](https://travis-ci.org/take-five/activerecord-hierarchical_query)
 [![Code Climate](https://codeclimate.com/github/take-five/activerecord-hierarchical_query.png)](https://codeclimate.com/github/take-five/activerecord-hierarchical_query)
 [![Coverage Status](https://coveralls.io/repos/take-five/activerecord-hierarchical_query/badge.png)](https://coveralls.io/r/take-five/activerecord-hierarchical_query)
-[![Dependency Status](https://gemnasium.com/take-five/activerecord-hierarchical_query.png)](https://gemnasium.com/take-five/activerecord-hierarchical_query)
 [![Gem Version](https://badge.fury.io/rb/activerecord-hierarchical_query.png)](http://badge.fury.io/rb/activerecord-hierarchical_query)
 
-Create hierarchical queries using simple DSL, recursively traverse trees using single SQL query.
+Create hierarchical queries using simple DSL, recursively
+traverse trees using single SQL query.
 
-If a table contains hierarchical data, then you can select rows in hierarchical order using hierarchical query builder.
+If a table contains hierarchical data, then you can select rows
+in hierarchical order using hierarchical query builder.
+
+## Requirements
+
+* ActiveRecord >= 5.0, < 5.3
+* PostgreSQL >= 8.4
+
+Note that though PostgresSQL 8.4 and up should work, this library
+is tested on PostgresSQL 10.5.
+
+### Rails Version
+
+**Rails 3 support has ended.**
+
+**Support for Rails 4 is limited to review of security related
+pull requests that include tests.** EOL for Rails 4 is when
+Rails 6 comes out.
+
+Rails 5 is supported on the `rails-5` branch and through gem
+versions `>= 1.0.0` on rubygems.org. This branch will soon
+replace master. If you have trouble with Rails 5.1 or 5.0, try
+upgrading Rails to 5.2.
+
+Now that @zachaysan is the new primary maintainer of this
+project, support for laggard versions of Rails is going to be
+minimal. Security updates will be accepted, but due to structural
+changes in Rails core it's no longer possible to easily support
+former versions of Rails.
+
+## In a nutshell
 
 ### Traverse trees
 
@@ -59,24 +89,11 @@ records = Category.join_recursive do |query|
     .connect_by(parent_id: :id)
 end.order('depth ASC')
 
-# returned value is just regular ActiveRecord::Relation instance, so you can use its methods
+# returns a regular ActiveRecord::Relation instance
+# so methods like `pluck` all work as expected.
+
 crumbs = records.pluck(:name).join(' / ')
 ```
-
-## Requirements
-
-* ActiveRecord >= 3.1.0
-* PostgreSQL >= 8.4
-
-## Rails 5
-
-Rails 5 is supported on the `rails-5` branch and through gem versions
-`>= 1.0.0` on rubygems.org. The Rails branch is intended to
-follow minor Rails releases (currently 5.1), but it should be
-compatible with 5.0 as well. If you have trouble try upgrading Rails
-first. Tag @zachaysan with in a GitHub issue if the latest version
-of Rails is not supported or if there are reproducable problems on
-the latest minor version of Rails 5.
 
 ## Installation
 
@@ -106,12 +123,12 @@ Alternatively, the require can be placed in the `Gemfile`:
 gem 'activerecord-hierarchical_query', require: 'active_record/hierarchical_query'
 ```
 
-
 ## Usage
 
-Let's say you've got an ActiveRecord model `Category` with attributes `id`, `parent_id`
-and `name`. You can traverse nodes recursively starting from root rows connected by
-`parent_id` column ordered by `name`:
+Let's say you've got an ActiveRecord model `Category` with
+attributes `id`, `parent_id` and `name`. You can traverse nodes
+recursively starting from root rows connected by `parent_id`
+column ordered by `name`:
 
 ```ruby
 Category.join_recursive do
@@ -140,10 +157,12 @@ Hierarchical queries are processed as follows:
 * First, root rows are selected -- those rows that satisfy `START WITH` condition in
   order specified by `ORDER SIBLINGS` clause. In example above it's specified by
   statements `query.start_with(parent_id: nil)` and `query.order_siblings(:name)`.
+
 * Second, child rows for each root rows are selected. Each child row must satisfy
   condition specified by `CONNECT BY` clause with respect to one of the root rows
   (`query.connect_by(id: :parent_id)` in example above). Order of child rows is
   also specified by `ORDER SIBLINGS` clause.
+
 * Successive generations of child rows are selected with respect to `CONNECT BY` clause.
   First the children of each row selected in step 2 selected, then the children of those
   children and so on.
@@ -201,7 +220,8 @@ Category.join_recursive do
 end
 ```
 
-You can even refer to parent table, just don't forget to include columns in `SELECT` clause!
+You can even refer to parent table, just don't forget to include
+columns in `SELECT` clause!
 
 ```ruby
 Category.join_recursive do |query|
@@ -222,8 +242,9 @@ end
 
 ### NOCYCLE
 
-Recursive query will loop if hierarchy contains cycles (your graph is not acyclic).
-`NOCYCLE` clause, which is turned off by default, could prevent it.
+Recursive query will loop if hierarchy contains cycles (your
+graph is not acyclic). `NOCYCLE` clause, which is turned off by
+default, could prevent it.
 
 Loop example:
 
@@ -235,7 +256,8 @@ node_1.parent = node_2
 node_1.save
 ```
 
-`node_1` and `node_2` now link to each other, so following query will never end:
+`node_1` and `node_2` now link to each other, so the following
+query will not terminate:
 
 ```ruby
 Category.join_recursive do |query|
@@ -255,8 +277,11 @@ end
 ```
 
 ## DISTINCT
-By default, the union term in the Common Table Expression uses a `UNION ALL`. If you want
-to `SELECT DISTINCT` CTE values, add a query option for  `distinct`:
+
+By default, the union term in the Common Table Expression uses a
+`UNION ALL`. If you want to `SELECT DISTINCT` CTE values, add a
+query option for `distinct`:
+
 ```ruby
 Category.join_recursive do |query|
   query.connect_by(id: :parent_id)
@@ -265,7 +290,9 @@ Category.join_recursive do |query|
 end
 ```
 
-If you want to join CTE terms by `UNION DISTINCT`, pass an option to `join_recursive`:
+If you want to join CTE terms by `UNION DISTINCT`, pass an option
+to `join_recursive`:
+
 ```ruby
 Category.join_recursive(union_type: :distinct) do |query|
   query.connect_by(id: :parent_id)
@@ -291,7 +318,7 @@ Category.join_recursive do |query|
 end
 ```
 
-would generate following SQL (if PostgreSQL used):
+Would generate following SQL:
 
 ```sql
 SELECT "categories".*
@@ -324,14 +351,20 @@ FROM "categories" INNER JOIN (
 ORDER BY "categories__recursive"."__order_column" ASC
 ```
 
-If you want to use a `LEFT OUTER JOIN` instead of an `INNER JOIN`, add a query option for `outer_join_hierarchical`.   This option allows the query to return non-hierarchical entries:
+If you want to use a `LEFT OUTER JOIN` instead of an `INNER JOIN`,
+add a query option for `outer_join_hierarchical`.  This
+option allows the query to return non-hierarchical entries:
+
 ```ruby
   .join_recursive(outer_join_hierarchical: true)
 ```
 
-If, when joining the recursive view to the main table, you want to change the foreign_key on the recursive view from the primary key of the main table to another column:
+If, when joining the recursive view to the main table, you want
+to change the foreign_key on the recursive view from the primary
+key of the main table to another column:
+
 ```ruby
-.join_recursive(foreign_key: another_column)
+  .join_recursive(foreign_key: another_column)
 ```
 
 ## Related resources
@@ -343,8 +376,5 @@ If, when joining the recursive view to the main table, you want to change the fo
 
 ## Contributing
 
-1. Fork it ( http://github.com/take-five/activerecord-hierarchical_query/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+Read through the short
+[contributing guide](https://github.com/take-five/activerecord-hierarchical_query/blob/master/CONTRIBUTING.md).
