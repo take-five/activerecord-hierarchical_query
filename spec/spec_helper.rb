@@ -2,9 +2,14 @@
 require 'pathname'
 require 'logger'
 
+begin
+  require 'pry'
+rescue LoadError
+end
+
 ENV['TZ'] = 'UTC'
 
-SPEC_ROOT = Pathname.new(File.dirname(__FILE__))
+SPEC_ROOT = Pathname.new(File.dirname(__FILE__)) unless defined? SPEC_ROOT
 
 require 'bundler'
 Bundler.setup(:default, ENV['TRAVIS'] ? :travis : :local)
@@ -15,25 +20,35 @@ require 'active_record'
 
 ActiveRecord::Base.configurations = YAML.load(SPEC_ROOT.join('database.yml').read)
 ActiveRecord::Base.establish_connection(:pg)
+
 ActiveRecord::Base.logger = Logger.new(ENV['DEBUG'] ? $stderr : '/dev/null')
 ActiveRecord::Base.logger.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime.strftime('%H:%M:%S.%L')}: #{msg}\n"
 end
 
-load SPEC_ROOT.join('schema.rb')
+begin
+  load SPEC_ROOT.join('schema.rb')
+rescue ActiveRecord::NoDatabaseError
+  bold  = "\033[1m"
+  red   = "\033[31m"
+  reset = "\033[0m"
+
+  puts ""
+  puts bold + red + "Database missing." + reset
+  puts "If you have #{bold}sudo#{reset}, run the below " +
+       "(ignore any role creation errors)."
+  puts ""
+  puts bold + "rake db:create" + reset
+  puts ""
+  exit
+end
+
 require SPEC_ROOT.join('support', 'models').to_s
 
 DatabaseCleaner.strategy = :transaction
 
-# See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-  config.run_all_when_everything_filtered = true
-  config.filter_run :focus
 
-  # Run specs in random order to surface order dependencies. If you find an
-  # order dependency and want to debug it, you can fix the order by providing
-  # the seed, which is printed after each run.
-  #     --seed 1234
   config.order = 'random'
 
   config.around(:each) do |example|
