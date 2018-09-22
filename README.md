@@ -16,6 +16,9 @@ Be aware that this README and the gems dependencies for Rails 4
 may be out of date. If you must use Rails 4 please monitor this
 branch's requirements for security releases.
 
+If you are on a ruby version greater than 2.3 be sure that you
+are on Rails 4.2.
+
 ## Introduction
 
 Create hierarchical queries using simple DSL, recursively traverse trees using single SQL query.
