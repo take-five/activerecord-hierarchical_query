@@ -25,19 +25,12 @@ is tested on PostgresSQL 10.5.
 **Rails 3 support has ended.**
 
 **Support for Rails 4 is limited to review of security related
-pull requests that include tests.** EOL for Rails 4 is when
-Rails 6 comes out.
+pull requests that include tests.** EOL for Rails 4 is when Rails
+6 comes out. Use versions less than 1.0 and fork the `rails-4`
+branch when creating a pull request.
 
-Rails 5 is supported on the `rails-5` branch and through gem
-versions `>= 1.0.0` on rubygems.org. This branch will soon
-replace master. If you have trouble with Rails 5.1 or 5.0,
-upgrade to Rails 5.2 and install the latest version.
-
-Now that @zachaysan is the new primary maintainer of this
-project, support for laggard versions of Rails is going to be
-minimal. Security updates will be accepted, but due to structural
-changes in Rails core it's no longer possible to easily support
-former versions of Rails.
+If you have trouble with Rails 5.1 or 5.0, try upgrading to Rails 5.2
+first. Rails 5 support is on versions 1.0 and up.
 
 ## In a nutshell
 
