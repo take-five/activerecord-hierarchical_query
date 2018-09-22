@@ -14,8 +14,14 @@ module ActiveRecord
           @builder = builder
         end
 
-        def bind_values
-          scope.values || {}
+        if ActiveRecord.version < Gem::Version.new("5.2")
+          def bind_values
+            scope.bound_attributes
+          end
+        else
+          def bind_values
+            scope.values || {}
+          end
         end
 
         def arel

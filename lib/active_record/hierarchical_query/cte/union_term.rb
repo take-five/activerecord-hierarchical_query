@@ -11,10 +11,16 @@ module ActiveRecord
           @union_type = options.fetch(:union_type, :all)
         end
 
-        def bind_values
-          non_recursive_term
-            .bind_values
-            .merge recursive_term.bind_values
+        if ActiveRecord.version < Gem::Version.new("5.2")
+          def bind_values
+            non_recursive_term.bind_values + recursive_term.bind_values
+          end
+        else
+          def bind_values
+            non_recursive_term
+              .bind_values
+              .merge recursive_term.bind_values
+          end
         end
 
         def arel

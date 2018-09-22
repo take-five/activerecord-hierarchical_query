@@ -21,10 +21,22 @@ module ActiveRecord
         # add ordering by "__order_column"
         relation.order_values += order_columns if ordered?
 
-        relation.joins(joined_arel_node)
+        relation = relation.joins(joined_arel_node)
+
+        return relation unless ActiveRecord.version < Gem::Version.new("5.2")
+
+        relation.bind_values += bind_values
+
+        relation
       end
 
       private
+
+      if ActiveRecord.version < Gem::Version.new("5.2")
+        def bind_values
+          @builder.bind_values
+        end
+      end
 
       def joined_arel_node
         @options[:outer_join_hierarchical] == true ? outer_join : inner_join
