@@ -1,11 +1,9 @@
 language: ruby
 rvm:
-  - 2.0.0
-  - 2.1.2
-  - 2.2
+  - 2.3
+  - 2.4
+  - 2.5
 gemfile:
-  - gemfiles/rails3.1.gemfile
-  - gemfiles/rails3.2.gemfile
   - gemfiles/rails4.0.gemfile
   - gemfiles/rails4.1.gemfile
   - gemfiles/rails4.2.gemfile
@@ -17,4 +15,4 @@ before_script:
 script: 'bundle exec rspec'
 notifications:
   recipients:
-    - amikhailov83@gmail.com
+    - zachaysan@gmail.com
