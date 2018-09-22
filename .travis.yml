@@ -1,9 +1,12 @@
 language: ruby
 rvm:
-  - 2.2
   - 2.3
+  - 2.4
+  - 2.5
 gemfile:
   - gemfiles/rails5.2.gemfile
+  - gemfiles/rails5.1.gemfile
+  - gemfiles/rails5.0.gemfile
 before_install: gem install bundler
 bundler_args: ""
 before_script:
@@ -12,4 +15,4 @@ before_script:
 script: 'bundle exec rspec'
 notifications:
   recipients:
-    - amikhailov83@gmail.com
+    - zachaysan@gmail.com
