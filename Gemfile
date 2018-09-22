@@ -3,8 +3,8 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in activerecord-hierarchical_query.gemspec
 gemspec
 
-gem 'pg', '~> 0.18.3'
-gem 'activerecord', '~> 4.2.0'
+gem 'pg', '>= 0.18', '< 1.0'
+gem 'activerecord', '>= 4.0', '< 5.0'
 
 group :local do
   gem 'yard'
