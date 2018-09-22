@@ -6,8 +6,8 @@ require 'active_record/hierarchical_query/version'
 Gem::Specification.new do |spec|
   spec.name          = 'activerecord-hierarchical_query'
   spec.version       = ActiveRecord::HierarchicalQuery::VERSION
-  spec.authors       = ['Alexei Mikhailov']
-  spec.email         = %w(amikhailov83@gmail.com)
+  spec.authors       = ['Alexei Mikhailov', 'Zach Aysan']
+  spec.email         = %w(amikhailov83@gmail.com zachaysan@gmail.com)
   spec.summary       = %q{Recursively traverse trees using a single SQL query}
   spec.homepage      = 'https://github.com/take-five/activerecord-hierarchical_query'
   spec.license       = 'MIT'
