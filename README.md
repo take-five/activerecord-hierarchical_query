@@ -6,6 +6,18 @@
 [![Dependency Status](https://gemnasium.com/take-five/activerecord-hierarchical_query.png)](https://gemnasium.com/take-five/activerecord-hierarchical_query)
 [![Gem Version](https://badge.fury.io/rb/activerecord-hierarchical_query.png)](http://badge.fury.io/rb/activerecord-hierarchical_query)
 
+## Rails 4 Only
+
+This is the README for the **Rails 4 version**. Support for Rails 4 is
+ending soon. Please upgrade to Rails 5 which is supported on the
+master branch.
+
+Be aware that this README and the gems dependencies for Rails 4
+may be out of date. If you must use Rails 4 please monitor this
+branch's requirements for security releases.
+
+## Introduction
+
 Create hierarchical queries using simple DSL, recursively traverse trees using single SQL query.
 
 If a table contains hierarchical data, then you can select rows in hierarchical order using hierarchical query builder.
@@ -65,18 +77,8 @@ crumbs = records.pluck(:name).join(' / ')
 
 ## Requirements
 
-* ActiveRecord >= 3.1.0
+* ActiveRecord >= 4.0, < 5.0
 * PostgreSQL >= 8.4
-
-## Rails 5
-
-Rails 5 is supported on the `rails-5` branch and through gem versions
-`>= 1.0.0` on rubygems.org. The Rails branch is intended to
-follow minor Rails releases (currently 5.1), but it should be
-compatible with 5.0 as well. If you have trouble try upgrading Rails
-first. Tag @zachaysan with in a GitHub issue if the latest version
-of Rails is not supported or if there are reproducable problems on
-the latest minor version of Rails 5.
 
 ## Installation
 
