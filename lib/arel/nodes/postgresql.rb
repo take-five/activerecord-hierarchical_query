@@ -25,7 +25,7 @@ module Arel
       ARRAY_CLOSING = ']'.freeze
       ARRAY_CONCAT = '||'.freeze
 
-      if Arel::VERSION < '6.0.0'
+      if Gem::Version.new(Arel::VERSION) < Gem::Version.new('6.0.0')
         def visit_Arel_Nodes_PostgresArray o, *a
           "#{ARRAY_OPENING}#{visit o.values, *a}#{ARRAY_CLOSING}"
         end
