@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require "vv"
+
+VV::Automate.push name: "activerecord-hierarchical_query"

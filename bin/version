@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+require "vv"
+
+version_path = "lib/active_record/hierarchical_query/version.rb"
+VV::Automate.version path: version_path, argv: ARGV
