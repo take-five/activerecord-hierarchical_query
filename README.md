@@ -13,7 +13,7 @@ in hierarchical order using hierarchical query builder.
 
 ## Requirements
 
-* ActiveRecord >= 5.0, < 5.3
+* ActiveRecord >= 5.0, <= 6.0
 * PostgreSQL >= 8.4
 * Postgres Gem >= 0.21, < 1.2
 
@@ -22,15 +22,11 @@ is tested on PostgresSQL 10.5.
 
 ### Rails Version
 
-**Rails 3 support has ended.**
-
-**Support for Rails 4 is limited to review of security related
-pull requests that include tests.** EOL for Rails 4 is when Rails
-6 comes out. Use versions less than 1.0 and fork the `rails-4`
-branch when creating a pull request.
+**Rails 4 support has ended.**
 
 If you have trouble with Rails 5.1 or 5.0, try upgrading to Rails 5.2
-first. Rails 5 support is on versions 1.0 and up.
+first. Rails 6 should work, but please report issues immediately as
+support is recent.
 
 ## In a nutshell
 
