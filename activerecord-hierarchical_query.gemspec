@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '>= 5.0', '< 6.2'
   spec.add_dependency 'pg', '>= 0.21', '< 1.3'
 
-  spec.add_development_dependency 'bundler', '~> 1.16'
+  spec.add_development_dependency 'bundler', '>= 1.16'
   spec.add_development_dependency 'rake', '~> 12.3'
   spec.add_development_dependency 'rspec', '~> 3.8'
   spec.add_development_dependency 'database_cleaner', '~> 1.7'
