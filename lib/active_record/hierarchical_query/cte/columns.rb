@@ -1,5 +1,3 @@
-require 'arel/visitors/depth_first'
-
 module ActiveRecord
   module HierarchicalQuery
     module CTE
@@ -18,7 +16,23 @@ module ActiveRecord
 
         private
         def connect_by_columns
-          @query.join_conditions.grep(Arel::Attributes::Attribute) { |column| column.name.to_s }
+          columns = []
+          traverse(@query.join_conditions) do |node|
+            columns << node.name.to_s if node.is_a?(Arel::Attributes::Attribute)
+          end
+          columns
+        end
+
+        def traverse(ast, &blck)
+          if ast && ast.respond_to?(:left) && ast.left
+            traverse(ast.left, &blck)
+          end
+
+          if ast && ast.respond_to?(:right) && ast.right
+            traverse(ast.right, &blck)
+          end
+
+          yield ast
         end
       end
     end
