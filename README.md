@@ -13,20 +13,12 @@ in hierarchical order using hierarchical query builder.
 
 ## Requirements
 
-- ActiveRecord >= 5.0, < 6.1
+- ActiveRecord >= 5.0, < 7.1
 - PostgreSQL >= 8.4
-- Postgres Gem >= 0.21, < 1.2
+- Postgres Gem >= 0.21, < 1.3
 
 Note that though PostgresSQL 8.4 and up should work, this library
 is tested on PostgresSQL 10.5.
-
-### Rails Version
-
-**Rails 4 support has ended.**
-
-If you have trouble with Rails 5.1 or 5.0, try upgrading to Rails 5.2
-first. Rails 6 should work, but please report issues immediately as
-support is recent.
 
 ## In a nutshell
 
