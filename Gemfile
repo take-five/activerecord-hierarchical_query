@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in activerecord-hierarchical_query.gemspec
 gemspec
 
-gem 'pg', '>= 0.21', '< 1.3'
+gem 'pg', '>= 0.21', '< 1.4'
 gem 'activerecord', '>= 5.0', '< 7.1'
 
 group :local do
