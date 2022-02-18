@@ -15,7 +15,7 @@ in hierarchical order using hierarchical query builder.
 
 - ActiveRecord >= 5.0, < 7.1
 - PostgreSQL >= 8.4
-- Postgres Gem >= 0.21, < 1.3
+- Postgres Gem >= 0.21, < 1.4
 
 Note that though PostgresSQL 8.4 and up should work, this library
 is tested on PostgresSQL 10.5.
