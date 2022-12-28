@@ -27,12 +27,10 @@ module ActiveRecord
         order_values.each do |value|
           Array.wrap(as_orderings(value)).each do |ordering|
             @values << ordering
-
-            yield ordering
           end
         end
 
-        @values
+        @values.each(&block)
       end
 
       # Returns order expression to be inserted into SELECT clauses of both
