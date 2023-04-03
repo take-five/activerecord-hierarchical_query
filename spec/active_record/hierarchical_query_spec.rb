@@ -120,11 +120,6 @@ describe ActiveRecord::HierarchicalQuery do
         assert_ordered_by_name_desc { order_siblings(name: :desc) }
       end
 
-      it 'orders rows by String' do
-        assert_ordered_by_name_desc { order_siblings('name desc') }
-        assert_ordered_by_name_asc { order_siblings('name asc') }
-      end
-
       it 'orders rows by Arel::Nodes::Ordering' do
         assert_ordered_by_name_desc { order_siblings(table[:name].desc) }
       end
@@ -151,6 +146,26 @@ describe ActiveRecord::HierarchicalQuery do
         it 'orders rows by given attribute' do
           expect(relation).to eq [root, child_1, child_2, child_3, child_4, child_5]
           expect(relation.to_sql).not_to match /row_number/i
+        end
+      end
+
+      context 'when ordering by String' do
+        it 'orders rows by one column' do
+          assert_ordered_by_name_desc { order_siblings('name desc') }
+          assert_ordered_by_name_asc { order_siblings('name asc') }
+        end
+
+        it 'orders rows by multiple columns' do
+          root.update!(name: "Root", trait_id: "a")
+          child_2.update!(name: 'Same Name', trait_id: 'a')
+          child_3.update!(name: 'Same Name', trait_id: 'b')
+          root2 = klass.create(name: "Root", trait_id: "b")
+
+          expect(
+            klass.join_recursive do |b|
+              b.connect_by(id: :parent_id).start_with(parent_id: nil).order_siblings('name asc, trait_id desc')
+            end
+          ).to eq [root2, root, child_1, child_3, child_2, child_4, child_5]
         end
       end
     end
