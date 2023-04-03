@@ -7,6 +7,7 @@ gem 'pg', '>= 0.21', '< 1.5'
 gem 'activerecord', '>= 5.0', '< 7.1'
 
 group :local do
+  gem 'rspec'
   gem 'yard'
   gem 'redcarpet'
   gem 'github-markup'
@@ -14,6 +15,7 @@ group :local do
 end
 
 group :development do
+  gem 'rspec'
   gem 'pry'
   gem 'vv'
 end
