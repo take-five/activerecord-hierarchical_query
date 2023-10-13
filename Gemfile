@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'pg', '>= 0.21', '< 1.6'
-gem 'activerecord', '>= 5.0', '< 7.1'
+gem 'activerecord', '>= 5.0', '< 8'
 
 group :local do
   gem 'rspec'
