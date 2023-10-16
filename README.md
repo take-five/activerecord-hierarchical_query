@@ -12,7 +12,7 @@ in hierarchical order using hierarchical query builder.
 
 ## Requirements
 
-- ActiveRecord >= 5.0, < 7.1
+- ActiveRecord >= 5.0, < 8
 - PostgreSQL >= 8.4
 - Postgres Gem >= 0.21, < 1.5
 
